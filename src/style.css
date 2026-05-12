@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@theme {
+    --color-forest-50: #f0f7f0;
+    --color-forest-100: #dceedc;
+    --color-forest-200: #b9dcba;
+    --color-forest-300: #88c289;
+    --color-forest-400: #57a259;
+    --color-forest-500: #348536;
+    --color-forest-600: #256827;
+    --color-forest-700: #1e5220;
+    --color-forest-800: #1a421c;
+    --color-forest-900: #163618;
+    --color-forest-950: #0b1f0c;
+
+    --color-slate-750: #2a3441;
+    --color-slate-850: #18222e;
+    --color-slate-950: #0d1520;
+
+    --color-water-400: #38bdf8;
+    --color-water-500: #0ea5e9;
+    --color-water-600: #0284c7;
+
+    --z-1000: 1000;
+}
+
+/* Animation for gradient hero text on landing page */
+@keyframes gradient-flow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+.animate-gradient-flow {
+    background-size: 200% 200%;
+    animation: gradient-flow 6s ease-in-out infinite;
+}
+
+/* Loading sheen animation for panels while data is loading */
+@keyframes loading-sheen {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+.loading-sheen {
+    position: relative;
+    overflow: hidden;
+}
+.loading-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 45%, rgba(255, 255, 255, 0) 70%);
+    transform: translateX(-100%);
+    animation: loading-sheen 1.4s ease-in-out infinite;
+    pointer-events: none;
+}
+.loading-sheen-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Status dot component for device health indicators */
+.status-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+}
+.status-ok {
+    background: #4ade80;
+}
+.status-err {
+    background: #ef4444;
+}
