@@ -1,188 +1,23 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { auth, fetchHealth, fetchDevices, fetchCommands, postCommand } from "@/lib/api";
+import { auth, fetchHealth, fetchDevices } from "@/lib/api";
 import { useSamples } from "@/hooks/useSamples";
-import { getDeviceLocation } from "@/lib/devices";
 import { fmt, formatTime, formatShortTime, formatRelative } from "@/lib/format";
 import { POLLING } from "@/lib/polling";
-import type { Device, SensorHealth, Command } from "@/types";
+import type { Device, SensorHealth } from "@/types";
+import CommandPanel from "@/elements/console/CommandPanel";
+import DeviceInfoPanel from "@/elements/console/DeviceInfoPanel";
+import HealthRow from "@/elements/console/HealthRow";
+import { SENSOR_KEYS } from "@/elements/console/sensorKeys";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
-
-/* Sensor health table row */
-
-const SENSOR_KEYS: Array<{ key: keyof SensorHealth; label: string }> = [
-    { key: "temperature", label: "Water Temp" },
-    { key: "turbidity", label: "Turbidity" },
-    { key: "tds", label: "TDS" },
-    { key: "environmental", label: "Environment" },
-    { key: "ozone", label: "Ozone" },
-    { key: "air_velocity", label: "Air Velocity" },
-    { key: "particulate_matter", label: "Particulates" },
-];
-
-function HealthRow({ health }: { health: SensorHealth }) {
-    const loc = getDeviceLocation(health.endpoint);
-    return (
-        <tr className="border-b border-white/5">
-            <td className="py-3 px-4 text-sm text-slate-500">{loc.label}</td>
-            <td className="py-3 px-4 text-xs font-mono text-slate-500">{health.endpoint}</td>
-            {SENSOR_KEYS.map(({ key, label }) => {
-                const ok = health[key] === 1;
-                return (
-                    <td key={label} className="py-3 px-4 text-center">
-                        <span
-                            className={`status-dot ${ok ? "status-ok" : "status-err"}`}
-                            title={ok ? `${label}: OK` : `${label}: FAULT`}
-                        />
-                    </td>
-                );
-            })}
-            <td className="py-3 px-4 text-xs text-slate-500">{formatRelative(health.updated_at)}</td>
-        </tr>
-    );
-}
-
-/* Command panel */
-
-function CommandPanel({ endpoint }: { endpoint: string }) {
-    const [command, setCommand] = useState<"reboot" | "ota">("reboot");
-    const [otaServer, setOtaServer] = useState("rivermote.org");
-    const [otaPath, setOtaPath] = useState("/firmware.bin");
-    const [status, setStatus] = useState("");
-    const [commands, setCommands] = useState<Command[]>([]);
-
-    async function loadCommands() {
-        try {
-            const data = await fetchCommands(endpoint, "active", "all");
-            setCommands(data);
-        } catch {
-            // silently ignore refresh failures
-        }
-    }
-
-    useEffect(() => {
-        // Load commands immediately and on the configured interval
-        const initial = setTimeout(() => void loadCommands(), 0);
-        const id = setInterval(() => void loadCommands(), POLLING.commandsMs);
-        return () => {
-            clearTimeout(initial);
-            clearInterval(id);
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [endpoint]);
-
-    async function send() {
-        setStatus("Sending…");
-        try {
-            if (command === "ota") {
-                const server = otaServer.trim();
-                const path = otaPath.trim();
-                if (!server || !path) {
-                    setStatus("Enter server and path");
-                    return;
-                }
-                const res = await postCommand(endpoint, "ota", { server, path });
-                setStatus(res.sent ? "✓ Sent" : "✓ Queued");
-                void loadCommands();
-                return;
-            }
-            const res = await postCommand(endpoint, "reboot");
-            setStatus(res.sent ? "✓ Sent" : "✓ Queued");
-            void loadCommands();
-        } catch {
-            setStatus("✗ Failed");
-        }
-    }
-
-    return (
-        <div className="panel p-4 flex flex-col gap-4">
-            <h3 className="text-xl text-slate-600 font-semibold">Send Command</h3>
-
-            <div className="flex flex-col gap-3">
-                <div className="flex gap-2">
-                    <select
-                        value={command}
-                        onChange={e => setCommand(e.target.value as "reboot" | "ota")}
-                        className="bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
-                    >
-                        <option value="reboot">reboot</option>
-                        <option value="ota">ota</option>
-                    </select>
-                    <button
-                        onClick={() => void send()}
-                        className="px-4 py-2 rounded-lg bg-forest-600 hover:bg-forest-500 text-white text-sm transition-colors"
-                    >
-                        Send
-                    </button>
-                </div>
-
-                {command === "ota" && (
-                    <div className="flex flex-col md:flex-row gap-2">
-                        <input
-                            value={otaServer}
-                            onChange={e => setOtaServer(e.target.value)}
-                            placeholder="Server"
-                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
-                        />
-                        <input
-                            value={otaPath}
-                            onChange={e => setOtaPath(e.target.value)}
-                            placeholder="Path"
-                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
-                        />
-                    </div>
-                )}
-            </div>
-            {status && <p className="text-xs text-slate-400">{status}</p>}
-
-            {/* Active command queue */}
-            {commands.length > 0 && (
-                <div className="border border-white/5 rounded-lg overflow-hidden">
-                    <table className="w-full text-xs font-mono">
-                        <thead>
-                            <tr className="border-b border-white/5 text-slate-500">
-                                <th className="text-left py-2 px-3">Time</th>
-                                <th className="text-left py-2 px-3">Command</th>
-                                <th className="text-left py-2 px-3">Payload</th>
-                                <th className="text-left py-2 px-3">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {commands.map(c => (
-                                <tr key={c.id} className="border-b border-white/5 text-slate-300">
-                                    <td className="py-2 px-3">{formatShortTime(c.created_at)}</td>
-                                    <td className="py-2 px-3">{c.cmd}</td>
-                                    <td className="py-2 px-3 text-slate-500">{c.payload ?? "—"}</td>
-                                    <td className="py-2 px-3">
-                                        <span
-                                            className={`px-1.5 py-0.5 rounded text-xs ${
-                                                c.status === "acked"
-                                                    ? "bg-green-900/50 text-green-400"
-                                                    : c.status === "sent"
-                                                      ? "bg-blue-900/50 text-blue-400"
-                                                      : "bg-slate-800 text-slate-400"
-                                            }`}
-                                        >
-                                            {c.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-        </div>
-    );
-}
-
-/* Main console page */
 
 export default function Console() {
     const navigate = useNavigate();
     const [devices, setDevices] = useState<Device[]>([]);
     const [health, setHealth] = useState<SensorHealth[]>([]);
     const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+
+    const deviceMap = useMemo(() => new Map(devices.map(device => [device.endpoint, device])), [devices]);
 
     // Poll device list and health every 30 seconds
     useEffect(() => {
@@ -203,6 +38,11 @@ export default function Console() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    async function refreshDevices() {
+        const devs = await fetchDevices().catch(() => [] as Device[]);
+        setDevices(devs);
+    }
+
     // Power chart samples for the selected endpoint
     const { samples } = useSamples({
         endpoint: selectedEndpoint,
@@ -216,7 +56,6 @@ export default function Console() {
             ordered.map(s => ({
                 time: formatShortTime(s.unix_time),
                 batteryV: s.battery_v,
-                solarV: s.vbus_v,
                 batteryPct: s.battery_pct,
             })),
         [ordered],
@@ -271,7 +110,13 @@ export default function Console() {
                                 </td>
                             </tr>
                         ) : (
-                            health.map(h => <HealthRow key={h.endpoint} health={h} />)
+                            health.map(h => (
+                                <HealthRow
+                                    key={h.endpoint}
+                                    health={h}
+                                    label={deviceMap.get(h.endpoint)?.name ?? h.endpoint}
+                                />
+                            ))
                         )}
                     </tbody>
                 </table>
@@ -291,7 +136,8 @@ export default function Console() {
                         >
                             {devices.map(d => (
                                 <option key={d.endpoint} value={d.endpoint}>
-                                    {getDeviceLocation(d.endpoint).label} ({d.endpoint}) — {formatRelative(d.last_seen)}
+                                    {d.name || d.endpoint} ({d.endpoint}) —
+                                    {d.last_seen ? ` ${formatRelative(d.last_seen)}` : " never"}
                                 </option>
                             ))}
                         </select>
@@ -305,11 +151,17 @@ export default function Console() {
                                 <div>
                                     🔋 {fmt(samples[0].battery_v, 2, " V")} / {fmt(samples[0].battery_pct, 0, "%")}
                                 </div>
-                                <div>☀️ {fmt(samples[0].vbus_v, 2, " V")}</div>
-                                <div>{samples[0].charging ? "⚡ Charging" : "· Not charging"}</div>
                                 <div className="text-slate-500 col-span-3">{formatTime(samples[0].unix_time)}</div>
                             </div>
                         </div>
+                    )}
+
+                    {selectedEndpoint && (
+                        <DeviceInfoPanel
+                            key={selectedEndpoint}
+                            device={deviceMap.get(selectedEndpoint) ?? null}
+                            onSaved={() => void refreshDevices()}
+                        />
                     )}
 
                     {selectedEndpoint && <CommandPanel endpoint={selectedEndpoint} />}
@@ -347,15 +199,6 @@ export default function Console() {
                                         dataKey="batteryV"
                                         name="Battery V"
                                         stroke="#0f766e"
-                                        dot={false}
-                                        isAnimationActive={false}
-                                    />
-                                    <Line
-                                        yAxisId="left"
-                                        type="monotone"
-                                        dataKey="solarV"
-                                        name="Solar V"
-                                        stroke="#f59e0b"
                                         dot={false}
                                         isAnimationActive={false}
                                     />

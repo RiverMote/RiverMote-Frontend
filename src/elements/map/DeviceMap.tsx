@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import type { Device, Sample } from "@/types";
-import { getDeviceLocation } from "@/lib/devices";
 import { fmt } from "@/lib/format";
 
 // @ts-expect-error: Allow side-effect import of CSS without type declarations
@@ -84,14 +83,23 @@ export default function DeviceMap({
         });
 
         devices.forEach(device => {
-            const loc = getDeviceLocation(device.endpoint);
             const sample = latestSamples[device.endpoint];
             const isSelected = device.endpoint === selectedEndpoint;
+            // Don't show markers for devices without valid location, and remove existing if they move to invalid
+            if (device.lat === null || device.lng === null) {
+                const existing = markersRef.current.get(device.endpoint);
+                if (existing) {
+                    existing.remove();
+                    markersRef.current.delete(device.endpoint);
+                }
+                return;
+            }
+            const label = device.name?.trim() ? device.name : device.endpoint;
 
             // Build the hover popup content for at-a-glance stats
             const popupHtml = `
                 <div class="min-w-37">
-                    <div class="text-lg text-slate-700 font-semibold mb-2">${loc.label}</div>
+                    <div class="text-lg text-slate-700 font-semibold mb-2">${label}</div>
                     ${
                         sample
                             ? `
@@ -112,7 +120,7 @@ export default function DeviceMap({
                 existing.getPopup()?.setContent(popupHtml);
             } else {
                 // Create a new marker
-                const marker = L.marker([loc.lat, loc.lng], {
+                const marker = L.marker([device.lat, device.lng], {
                     icon: makeIcon(isSelected),
                 })
                     .addTo(mapRef.current!)
@@ -132,11 +140,12 @@ export default function DeviceMap({
         if (!mapRef.current || !selectedEndpoint) {
             return;
         }
-        const loc = getDeviceLocation(selectedEndpoint);
-        if (loc.lat !== 0 || loc.lng !== 0) {
-            mapRef.current.flyTo([loc.lat, loc.lng], 14, { duration: 1.2 });
+        const selected = devices.find(device => device.endpoint === selectedEndpoint);
+        if (!selected || selected.lat === null || selected.lng === null) {
+            return;
         }
-    }, [selectedEndpoint]);
+        mapRef.current.flyTo([selected.lat, selected.lng], 14, { duration: 1.2 });
+    }, [selectedEndpoint, devices]);
 
     return (
         <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-300" aria-busy={loading}>

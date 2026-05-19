@@ -4,6 +4,7 @@ import Nav from "@/elements/ui/Nav";
 import Landing from "@/pages/Landing";
 import About from "@/pages/About";
 import Data from "@/pages/Data";
+import NotFound from "@/pages/NotFound";
 import ConsoleLogin from "@/pages/ConsoleLogin";
 import Console from "@/pages/Console";
 
@@ -36,6 +37,8 @@ export default function App() {
                         </RequireAuth>
                     }
                 />
+
+                <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>
     );

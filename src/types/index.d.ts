@@ -1,10 +1,11 @@
-// ---------------------------------------------------------------------------
-// API response types — mirrors the backend DB schema exactly
-// ---------------------------------------------------------------------------
+// API response types
 
 export interface Device {
     endpoint: string;
-    last_seen: number;
+    last_seen: number | null;
+    name: string;
+    lat: number | null;
+    lng: number | null;
 }
 
 export interface Sample {
@@ -14,8 +15,6 @@ export interface Sample {
     millis: number | null;
     battery_v: number | null;
     battery_pct: number | null;
-    vbus_v: number | null;
-    charging: 0 | 1;
     water_temp: number | null;
     turbidity: number | null;
     tds: number | null;
@@ -56,33 +55,12 @@ export interface SensorHealth {
     updated_at: number;
 }
 
-// ---------------------------------------------------------------------------
-// UI-only types
-// ---------------------------------------------------------------------------
-
-// Known lat/lng positions for each endpoint — configured manually since the
-// backend doesn't store device locations
-export interface DeviceLocation {
-    endpoint: string;
-    label: string;
-    lat: number;
-    lng: number;
-}
-
-// Fields from Sample that are relevant to the public data page
-// (excludes internal power/admin fields)
-export interface PublicMetrics {
-    water_temp: number | null;
-    turbidity: number | null;
-    tds: number | null;
-    air_temp: number | null;
-    humidity: number | null;
-    air_velocity: number | null;
-    ozone: number | null;
-    uv: number | null;
-    lum: number | null;
-    baro: number | null;
-    pm1_0: number | null;
-    pm2_5: number | null;
-    pm10: number | null;
-}
+export const SENSOR_KEYS: Array<{ key: keyof SensorHealth; label: string }> = [
+    { key: "temperature", label: "Water Temp" },
+    { key: "turbidity", label: "Turbidity" },
+    { key: "tds", label: "TDS" },
+    { key: "environmental", label: "Environment" },
+    { key: "ozone", label: "Ozone" },
+    { key: "air_velocity", label: "Air Velocity" },
+    { key: "particulate_matter", label: "Particulates" },
+];

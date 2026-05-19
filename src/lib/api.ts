@@ -53,6 +53,22 @@ export async function fetchDevices(): Promise<Device[]> {
     return res.json() as Promise<Device[]>;
 }
 
+export async function setDeviceInfo(params: {
+    endpoint: string;
+    name: string;
+    lat: number | null;
+    lng: number | null;
+}): Promise<Device> {
+    const res = await apiFetch("/api/devices/info", {
+        method: "POST",
+        body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+        throw new Error("Failed to update device info");
+    }
+    return res.json() as Promise<Device>;
+}
+
 export async function fetchSamples(endpoint: string, limit: number | "all" = 100): Promise<Sample[]> {
     const res = await fetch(`/api/samples?endpoint=${encodeURIComponent(endpoint)}&limit=${limit}`);
     if (!res.ok) {
