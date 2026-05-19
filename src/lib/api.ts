@@ -78,11 +78,11 @@ export async function fetchCommands(endpoint: string, status?: string, limit: nu
 export async function postCommand(
     endpoint: string,
     cmd: string,
-    payload?: string,
+    params?: { server?: string; path?: string },
 ): Promise<{ ok: boolean; sent: boolean }> {
     const res = await apiFetch("/api/commands", {
         method: "POST",
-        body: JSON.stringify({ endpoint, cmd, payload }),
+        body: JSON.stringify({ endpoint, cmd, ...params }),
     });
     if (!res.ok) {
         throw new Error("Failed to send command");

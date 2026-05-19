@@ -45,8 +45,9 @@ function HealthRow({ health }: { health: SensorHealth }) {
 /* Command panel */
 
 function CommandPanel({ endpoint }: { endpoint: string }) {
-    const [cmd, setCmd] = useState("");
-    const [payload, setPayload] = useState("");
+    const [command, setCommand] = useState<"reboot" | "ota">("reboot");
+    const [otaServer, setOtaServer] = useState("rivermote.org");
+    const [otaPath, setOtaPath] = useState("/firmware.bin");
     const [status, setStatus] = useState("");
     const [commands, setCommands] = useState<Command[]>([]);
 
@@ -71,12 +72,21 @@ function CommandPanel({ endpoint }: { endpoint: string }) {
     }, [endpoint]);
 
     async function send() {
-        if (!cmd.trim()) {
-            return;
-        }
         setStatus("Sending…");
         try {
-            const res = await postCommand(endpoint, cmd.trim(), payload.trim() || undefined);
+            if (command === "ota") {
+                const server = otaServer.trim();
+                const path = otaPath.trim();
+                if (!server || !path) {
+                    setStatus("Enter server and path");
+                    return;
+                }
+                const res = await postCommand(endpoint, "ota", { server, path });
+                setStatus(res.sent ? "✓ Sent" : "✓ Queued");
+                void loadCommands();
+                return;
+            }
+            const res = await postCommand(endpoint, "reboot");
             setStatus(res.sent ? "✓ Sent" : "✓ Queued");
             void loadCommands();
         } catch {
@@ -88,25 +98,40 @@ function CommandPanel({ endpoint }: { endpoint: string }) {
         <div className="panel p-4 flex flex-col gap-4">
             <h3 className="text-xl text-slate-600 font-semibold">Send Command</h3>
 
-            <div className="flex gap-2">
-                <input
-                    value={cmd}
-                    onChange={e => setCmd(e.target.value)}
-                    placeholder="Command name"
-                    className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
-                />
-                <input
-                    value={payload}
-                    onChange={e => setPayload(e.target.value)}
-                    placeholder="Payload (optional)"
-                    className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
-                />
-                <button
-                    onClick={() => void send()}
-                    className="px-4 py-2 rounded-lg bg-forest-600 hover:bg-forest-500 text-white text-sm transition-colors"
-                >
-                    Send
-                </button>
+            <div className="flex flex-col gap-3">
+                <div className="flex gap-2">
+                    <select
+                        value={command}
+                        onChange={e => setCommand(e.target.value as "reboot" | "ota")}
+                        className="bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
+                    >
+                        <option value="reboot">reboot</option>
+                        <option value="ota">ota</option>
+                    </select>
+                    <button
+                        onClick={() => void send()}
+                        className="px-4 py-2 rounded-lg bg-forest-600 hover:bg-forest-500 text-white text-sm transition-colors"
+                    >
+                        Send
+                    </button>
+                </div>
+
+                {command === "ota" && (
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <input
+                            value={otaServer}
+                            onChange={e => setOtaServer(e.target.value)}
+                            placeholder="Server"
+                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
+                        />
+                        <input
+                            value={otaPath}
+                            onChange={e => setOtaPath(e.target.value)}
+                            placeholder="Path"
+                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
+                        />
+                    </div>
+                )}
             </div>
             {status && <p className="text-xs text-slate-400">{status}</p>}
 
