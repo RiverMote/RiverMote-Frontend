@@ -4,16 +4,16 @@ const links = [
     { to: "/", label: "Home" },
     { to: "/data", label: "Data" },
     { to: "/about", label: "About" },
+    { to: "/sponsors", label: "Sponsors" },
 ];
 
 export default function Nav() {
     return (
         <>
-            {/* TODO: bg-sky-100/70 for nav? Can't quite decide */}
             <header className="fixed top-0 left-0 right-0 z-2000 bg-sky-200/20 backdrop-blur-md border-b border-sky-200/40">
                 <div className="mx-auto max-w-7xl px-6 flex items-center justify-between h-14">
-                    {/* Wordmark */}
                     <NavLink to="/" className="flex items-center gap-1">
+                        <img className="w-8 pr-1" src="/RM_logo.png"/>
                         <span className="text-xl font-semibold text-forest-400 tracking-tight">
                             River <span className="text-water-500">Mote</span>
                         </span>

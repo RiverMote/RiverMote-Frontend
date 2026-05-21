@@ -4,6 +4,7 @@ import Nav from "@/elements/ui/Nav";
 import Landing from "@/pages/Landing";
 import About from "@/pages/About";
 import Data from "@/pages/Data";
+import Sponsors from "@/pages/Sponsors";
 import NotFound from "@/pages/NotFound";
 import ConsoleLogin from "@/pages/ConsoleLogin";
 import Console from "@/pages/Console";
@@ -25,6 +26,7 @@ export default function App() {
                     <Route path="/" element={<Landing />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/data" element={<Data />} />
+                    <Route path="/sponsors" element={<Sponsors />} />
                 </Route>
 
                 {/* Console has a separate nav-less layout */}
