@@ -5,9 +5,10 @@ import { POLLING } from "@/lib/polling";
 import type { Command } from "@/types";
 
 export default function CommandPanel({ endpoint }: { endpoint: string }) {
-    const [command, setCommand] = useState<"reboot" | "ota">("reboot");
+    const [command, setCommand] = useState<"reboot" | "ota" | "set_slot">("reboot");
     const [otaServer, setOtaServer] = useState("rivermote.org");
     const [otaPath, setOtaPath] = useState("/firmware.bin");
+    const [slotSeconds, setSlotSeconds] = useState("");
     const [status, setStatus] = useState("");
     const [commands, setCommands] = useState<Command[]>([]);
 
@@ -46,6 +47,17 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 void loadCommands();
                 return;
             }
+            if (command === "set_slot") {
+                const secondsValue = Number(slotSeconds);
+                if (!Number.isInteger(secondsValue)) {
+                    setStatus("Enter an integer number of seconds");
+                    return;
+                }
+                const res = await postCommand(endpoint, "set_slot", { seconds: secondsValue });
+                setStatus(res.sent ? "✓ Sent" : "✓ Queued");
+                void loadCommands();
+                return;
+            }
             const res = await postCommand(endpoint, "reboot");
             setStatus(res.sent ? "✓ Sent" : "✓ Queued");
             void loadCommands();
@@ -62,11 +74,12 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 <div className="flex gap-2">
                     <select
                         value={command}
-                        onChange={e => setCommand(e.target.value as "reboot" | "ota")}
+                        onChange={e => setCommand(e.target.value as "reboot" | "ota" | "set_slot")}
                         className="bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
                     >
                         <option value="reboot">reboot</option>
                         <option value="ota">ota</option>
+                        <option value="set_slot">set_slot</option>
                     </select>
                     <button
                         onClick={() => void send()}
@@ -88,6 +101,16 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                             value={otaPath}
                             onChange={e => setOtaPath(e.target.value)}
                             placeholder="Path"
+                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
+                        />
+                    </div>
+                )}
+                {command === "set_slot" && (
+                    <div className="flex flex-col md:flex-row gap-2">
+                        <input
+                            value={slotSeconds}
+                            onChange={e => setSlotSeconds(e.target.value)}
+                            placeholder="Seconds"
                             className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
                         />
                     </div>
