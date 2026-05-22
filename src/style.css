@@ -22,6 +22,11 @@
 
     --z-1000: 1000;
 }
+@layer base {
+    .about-page a {
+        @apply underline underline-offset-4;
+    }
+}
 
 /* Animation for gradient hero text on landing page */
 @keyframes gradient-flow {

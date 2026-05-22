@@ -28,6 +28,7 @@ export interface Sample {
     pm1_0: number | null;
     pm2_5: number | null;
     pm10: number | null;
+    chamber_temp: number | null;
     created_at: number;
 }
 
@@ -52,15 +53,6 @@ export interface SensorHealth {
     ozone: 0 | 1;
     air_velocity: 0 | 1;
     particulate_matter: 0 | 1;
+    chamber_temp: 0 | 1;
     updated_at: number;
 }
-
-export const SENSOR_KEYS: Array<{ key: keyof SensorHealth; label: string }> = [
-    { key: "temperature", label: "Water Temp" },
-    { key: "turbidity", label: "Turbidity" },
-    { key: "tds", label: "TDS" },
-    { key: "environmental", label: "Environment" },
-    { key: "ozone", label: "Ozone" },
-    { key: "air_velocity", label: "Air Velocity" },
-    { key: "particulate_matter", label: "Particulates" },
-];
