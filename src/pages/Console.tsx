@@ -2,14 +2,14 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { auth, fetchHealth, fetchDevices } from "@/lib/api";
 import { useSamples } from "@/hooks/useSamples";
-import { fmt, formatTime, formatShortTime, formatRelative } from "@/lib/format";
+import { fmt, formatTime, formatRelative } from "@/lib/format";
 import { POLLING } from "@/lib/polling";
 import type { Device, SensorHealth } from "@/types";
 import CommandPanel from "@/elements/console/CommandPanel";
 import DeviceInfoPanel from "@/elements/console/DeviceInfoPanel";
 import HealthRow from "@/elements/console/HealthRow";
 import { SENSOR_KEYS } from "@/elements/console/sensorKeys";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
+import CustomChart from "@/elements/data/CustomChart";
 
 export default function Console() {
     const navigate = useNavigate();
@@ -49,17 +49,6 @@ export default function Console() {
         limit: 200,
         pollInterval: POLLING.samplesMs,
     });
-
-    const ordered = useMemo(() => [...samples].reverse(), [samples]);
-    const powerData = useMemo(
-        () =>
-            ordered.map(s => ({
-                time: formatShortTime(s.unix_time),
-                batteryV: s.battery_v,
-                batteryPct: s.battery_pct,
-            })),
-        [ordered],
-    );
 
     function logout() {
         auth.clear();
@@ -143,7 +132,7 @@ export default function Console() {
                         </select>
                     </div>
 
-                    {/* Latest values for selected device (admin view — includes power fields) */}
+                    {/* Latest values for selected device */}
                     {samples[0] && (
                         <div className="panel p-4">
                             <h3 className="text-xl text-slate-600 font-semibold mb-3">Latest Sample</h3>
@@ -151,6 +140,7 @@ export default function Console() {
                                 <div>
                                     🔋 {fmt(samples[0].battery_v, 2, " V")} / {fmt(samples[0].battery_pct, 0, "%")}
                                 </div>
+                                <div>📦 {fmt(samples[0].chamber_temp, 1, "°C")}</div>
                                 <div className="text-slate-500 col-span-3">{formatTime(samples[0].unix_time)}</div>
                             </div>
                         </div>
@@ -167,55 +157,8 @@ export default function Console() {
                     {selectedEndpoint && <CommandPanel endpoint={selectedEndpoint} />}
                 </div>
 
-                {/* Right: power chart */}
-                <div className="panel p-5">
-                    <h3 className="text-xl text-slate-600 font-semibold mb-3">Power</h3>
-                    {powerData.length === 0 ? (
-                        <div className="flex items-center justify-center h-48 text-slate-600 text-sm">
-                            No data for this device
-                        </div>
-                    ) : (
-                        <div className="h-55">
-                            <ResponsiveContainer
-                                width="100%"
-                                height="100%"
-                                initialDimension={{ width: 100, height: 50 }}
-                            >
-                                <LineChart data={powerData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
-                                    <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" vertical={false} />
-                                    <XAxis dataKey="time" tick={{ fill: "#64748b", fontSize: 11 }} />
-                                    <YAxis yAxisId="left" tick={{ fill: "#64748b", fontSize: 11 }} />
-                                    <YAxis
-                                        yAxisId="right"
-                                        orientation="right"
-                                        domain={[0, 100]}
-                                        tick={{ fill: "#64748b", fontSize: 11 }}
-                                    />
-                                    <Tooltip />
-                                    <Legend />
-                                    <Line
-                                        yAxisId="left"
-                                        type="monotone"
-                                        dataKey="batteryV"
-                                        name="Battery V"
-                                        stroke="#0f766e"
-                                        dot={false}
-                                        isAnimationActive={false}
-                                    />
-                                    <Line
-                                        yAxisId="right"
-                                        type="monotone"
-                                        dataKey="batteryPct"
-                                        name="Battery %"
-                                        stroke="#2563eb"
-                                        dot={false}
-                                        isAnimationActive={false}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    )}
-                </div>
+                {/* Right: historical chart */}
+                <CustomChart samples={samples} />
             </div>
         </div>
     );

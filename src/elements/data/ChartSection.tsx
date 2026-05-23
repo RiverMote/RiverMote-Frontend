@@ -1,7 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
-import { formatShortTime } from "@/lib/format";
+import { formatShortTime, formatTime } from "@/lib/format";
 
 interface ChartSectionProps {
     samples: Sample[];
@@ -22,7 +22,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
     const chartData = useMemo(
         () =>
             ordered.map(s => ({
-                time: formatShortTime(s.unix_time),
+                unixTime: s.unix_time,
                 waterTemp: s.water_temp,
                 turbidity: s.turbidity,
                 tds: s.tds,
@@ -42,6 +42,17 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
     }
 
     const axisTick = { fill: "#64748b", fontSize: 11 };
+    const xAxisProps = {
+        dataKey: "unixTime",
+        tick: axisTick,
+        interval: "preserveStartEnd" as const,
+        type: "number" as const,
+        domain: ["dataMin", "dataMax"] as const,
+        scale: "time" as const,
+        tickFormatter: (value: number) => formatShortTime(value),
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tooltipLabelFormatter = (value: any) => formatTime(value as number);
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -50,10 +61,10 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis dataKey="time" tick={axisTick} interval="preserveStartEnd" />
+                            <XAxis {...xAxisProps} />
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -83,10 +94,10 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis dataKey="time" tick={axisTick} interval="preserveStartEnd" />
+                            <XAxis {...xAxisProps} />
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -116,10 +127,10 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis dataKey="time" tick={axisTick} interval="preserveStartEnd" />
+                            <XAxis {...xAxisProps} />
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -149,9 +160,9 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis dataKey="time" tick={axisTick} interval="preserveStartEnd" />
+                            <XAxis {...xAxisProps} />
                             <YAxis tick={axisTick} />
-                            <Tooltip />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
                             <Legend />
                             <Line
                                 type="monotone"

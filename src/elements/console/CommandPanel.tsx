@@ -4,8 +4,10 @@ import { formatShortTime } from "@/lib/format";
 import { POLLING } from "@/lib/polling";
 import type { Command } from "@/types";
 
+type CommandType = "reboot" | "ota" | "set_slot";
+
 export default function CommandPanel({ endpoint }: { endpoint: string }) {
-    const [command, setCommand] = useState<"reboot" | "ota" | "set_slot">("reboot");
+    const [command, setCommand] = useState<CommandType>("reboot");
     const [otaServer, setOtaServer] = useState("rivermote.org");
     const [otaPath, setOtaPath] = useState("/firmware.bin");
     const [slotSeconds, setSlotSeconds] = useState("");
@@ -74,7 +76,7 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 <div className="flex gap-2">
                     <select
                         value={command}
-                        onChange={e => setCommand(e.target.value as "reboot" | "ota" | "set_slot")}
+                        onChange={e => setCommand(e.target.value as CommandType)}
                         className="bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
                     >
                         <option value="reboot">reboot</option>
@@ -132,7 +134,7 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                         </thead>
                         <tbody>
                             {commands.map(c => (
-                                <tr key={c.id} className="border-b border-white/5 text-slate-300">
+                                <tr key={c.id} className="border-b border-white/5 text-slate-500">
                                     <td className="py-2 px-3">{formatShortTime(c.created_at)}</td>
                                     <td className="py-2 px-3">{c.cmd}</td>
                                     <td className="py-2 px-3 text-slate-500">{c.payload ?? "—"}</td>
@@ -140,9 +142,9 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                                         <span
                                             className={`px-1.5 py-0.5 rounded text-xs ${
                                                 c.status === "acked"
-                                                    ? "bg-green-900/50 text-green-400"
+                                                    ? "bg-green-300/50 text-forest-400"
                                                     : c.status === "sent"
-                                                      ? "bg-blue-900/50 text-blue-400"
+                                                      ? "bg-sky-300/50 text-blue-400"
                                                       : "bg-slate-800 text-slate-400"
                                             }`}
                                         >

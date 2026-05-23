@@ -16,6 +16,7 @@ export default defineConfig({
     server: {
         // Proxy API requests to the Express backend during local development
         proxy: {
+            // "/api": "http://localhost:8000",
             "/api": "https://rivermote.org",
         },
     },

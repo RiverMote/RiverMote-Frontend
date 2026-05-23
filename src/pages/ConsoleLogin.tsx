@@ -53,7 +53,7 @@ export default function ConsoleLogin() {
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             autoFocus
-                            className="bg-slate-300/50 border border-white/10 rounded-lg px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-forest-500 transition-colors"
+                            className="bg-slate-300/50 border border-white/10 rounded-lg px-4 py-2.5 text-slate-900 focus:outline-none focus:ring-1 focus:ring-forest-500 transition-colors"
                             placeholder="••••••••"
                         />
                     </div>

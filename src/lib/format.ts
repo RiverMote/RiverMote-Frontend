@@ -1,11 +1,20 @@
 /* Time formatting helpers */
 
 export function formatTime(epochSeconds: number): string {
-    return new Date(epochSeconds * 1000).toLocaleString();
+    return new Date(epochSeconds * 1000).toLocaleString(undefined, {
+        year: "numeric",
+        month: "numeric",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    });
 }
 
 export function formatShortTime(epochSeconds: number): string {
-    return new Date(epochSeconds * 1000).toLocaleTimeString();
+    return new Date(epochSeconds * 1000).toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+    });
 }
 
 export function formatDate(epochSeconds: number): string {
