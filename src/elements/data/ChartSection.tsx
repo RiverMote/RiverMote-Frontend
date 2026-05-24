@@ -2,6 +2,8 @@ import { useMemo, type ReactNode } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
+import CustomChart from "@/elements/data/CustomChart";
+import { METRIC_LOOKUP } from "@/elements/data/metrics";
 
 interface ChartSectionProps {
     samples: Sample[];
@@ -23,14 +25,18 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
         () =>
             ordered.map(s => ({
                 unixTime: s.unix_time,
-                waterTemp: s.water_temp,
+                water_temp: s.water_temp,
                 turbidity: s.turbidity,
                 tds: s.tds,
                 ozone: s.ozone,
-                airTemp: s.air_temp,
+                air_temp: s.air_temp,
                 humidity: s.humidity,
-                pm1: s.pm1_0,
-                pm25: s.pm2_5,
+                air_velocity: s.air_velocity,
+                baro: s.baro,
+                uv: s.uv,
+                lum: s.lum,
+                pm1_0: s.pm1_0,
+                pm2_5: s.pm2_5,
                 pm10: s.pm10,
             })),
         [ordered],
@@ -56,6 +62,48 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <ChartCard title="Temperature" loading={loading}>
+                {hasData && (
+                    <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
+                        <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
+                            <XAxis {...xAxisProps} />
+                            <YAxis yAxisId="left" tick={axisTick} />
+                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="water_temp"
+                                name={METRIC_LOOKUP.water_temp.label}
+                                stroke={METRIC_LOOKUP.water_temp.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="air_temp"
+                                name={METRIC_LOOKUP.air_temp.label}
+                                stroke={METRIC_LOOKUP.air_temp.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="humidity"
+                                name={METRIC_LOOKUP.humidity.label}
+                                stroke={METRIC_LOOKUP.humidity.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                )}
+            </ChartCard>
+
             <ChartCard title="Water Quality" loading={loading}>
                 {hasData && (
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
@@ -65,13 +113,13 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend />
+                            <Legend wrapperStyle={{ top: 160 }} />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
-                                dataKey="waterTemp"
-                                name="Water Temp (°C)"
-                                stroke="#0ea5e9"
+                                dataKey="tds"
+                                name={METRIC_LOOKUP.tds.label}
+                                stroke={METRIC_LOOKUP.tds.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -79,41 +127,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="right"
                                 type="monotone"
                                 dataKey="turbidity"
-                                name="Turbidity (NTU)"
-                                stroke="#f59e0b"
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                )}
-            </ChartCard>
-
-            <ChartCard title="TDS & Ozone" loading={loading}>
-                {hasData && (
-                    <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
-                        <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
-                            <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
-                            <YAxis yAxisId="left" tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="tds"
-                                name="TDS (ppm)"
-                                stroke="#34d399"
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="ozone"
-                                name="Ozone (ppm)"
-                                stroke="#a78bfa"
+                                name={METRIC_LOOKUP.turbidity.label}
+                                stroke={METRIC_LOOKUP.turbidity.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -131,22 +146,22 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend />
+                            <Legend wrapperStyle={{ top: 160 }} />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
-                                dataKey="airTemp"
-                                name="Air Temp (°C)"
-                                stroke="#f87171"
+                                dataKey="air_velocity"
+                                name={METRIC_LOOKUP.air_velocity.label}
+                                stroke={METRIC_LOOKUP.air_velocity.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
                             <Line
                                 yAxisId="right"
                                 type="monotone"
-                                dataKey="humidity"
-                                name="Humidity (%)"
-                                stroke="#60a5fa"
+                                dataKey="baro"
+                                name={METRIC_LOOKUP.baro.label}
+                                stroke={METRIC_LOOKUP.baro.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -155,36 +170,31 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                 )}
             </ChartCard>
 
-            <ChartCard title="Particulates" loading={loading}>
+            <ChartCard title="Sunlight" loading={loading}>
                 {hasData && (
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis tick={axisTick} />
+                            <YAxis yAxisId="left" tick={axisTick} />
+                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend />
+                            <Legend wrapperStyle={{ top: 160 }} />
                             <Line
+                                yAxisId="left"
                                 type="monotone"
-                                dataKey="pm1"
-                                name="PM1.0"
-                                stroke="#c084fc"
+                                dataKey="uv"
+                                name={METRIC_LOOKUP.uv.label}
+                                stroke={METRIC_LOOKUP.uv.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
                             <Line
+                                yAxisId="right"
                                 type="monotone"
-                                dataKey="pm25"
-                                name="PM2.5"
-                                stroke="#e879f9"
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                type="monotone"
-                                dataKey="pm10"
-                                name="PM10"
-                                stroke="#f472b6"
+                                dataKey="lum"
+                                name={METRIC_LOOKUP.lum.label}
+                                stroke={METRIC_LOOKUP.lum.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -192,6 +202,59 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                     </ResponsiveContainer>
                 )}
             </ChartCard>
+
+            <ChartCard title="Air Quality" loading={loading}>
+                {hasData && (
+                    <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
+                        <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
+                            <XAxis {...xAxisProps} />
+                            <YAxis tick={axisTick} />
+                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="pm1_0"
+                                name={METRIC_LOOKUP.pm1_0.label}
+                                stroke={METRIC_LOOKUP.pm1_0.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="pm2_5"
+                                name={METRIC_LOOKUP.pm2_5.label}
+                                stroke={METRIC_LOOKUP.pm2_5.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="pm10"
+                                name={METRIC_LOOKUP.pm10.label}
+                                stroke={METRIC_LOOKUP.pm10.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="ozone"
+                                name={METRIC_LOOKUP.ozone.label}
+                                stroke={METRIC_LOOKUP.ozone.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                )}
+            </ChartCard>
+
+            <CustomChart samples={samples} />
         </div>
     );
 }

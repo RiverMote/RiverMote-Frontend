@@ -2,43 +2,7 @@ import { useMemo, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
-
-type MetricKey =
-    | "battery_v"
-    | "battery_pct"
-    | "water_temp"
-    | "turbidity"
-    | "tds"
-    | "air_temp"
-    | "humidity"
-    | "air_velocity"
-    | "ozone"
-    | "uv"
-    | "lum"
-    | "baro"
-    | "pm1_0"
-    | "pm2_5"
-    | "pm10"
-    | "chamber_temp";
-
-const METRIC_OPTIONS: Array<{ key: MetricKey; label: string; color: string }> = [
-    { key: "battery_v", label: "Battery V", color: "#0f766e" },
-    { key: "battery_pct", label: "Battery %", color: "#2563eb" },
-    { key: "water_temp", label: "Water Temp (°C)", color: "#0ea5e9" },
-    { key: "turbidity", label: "Turbidity (NTU)", color: "#f59e0b" },
-    { key: "tds", label: "TDS (ppm)", color: "#34d399" },
-    { key: "air_temp", label: "Air Temp (°C)", color: "#f87171" },
-    { key: "humidity", label: "Humidity (%)", color: "#60a5fa" },
-    { key: "air_velocity", label: "Air Velocity", color: "#a3e635" },
-    { key: "ozone", label: "Ozone (ppm)", color: "#a78bfa" },
-    { key: "uv", label: "UV", color: "#f97316" },
-    { key: "lum", label: "Luminosity", color: "#eab308" },
-    { key: "baro", label: "Barometric", color: "#94a3b8" },
-    { key: "pm1_0", label: "PM1.0", color: "#c084fc" },
-    { key: "pm2_5", label: "PM2.5", color: "#e879f9" },
-    { key: "pm10", label: "PM10", color: "#f472b6" },
-    { key: "chamber_temp", label: "Chamber Temp (°C)", color: "#fb7185" },
-];
+import { METRIC_LOOKUP, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
 
 export default function CustomChart({ samples }: { samples: Sample[] }) {
     const [primaryMetric, setPrimaryMetric] = useState<MetricKey>("battery_v");
@@ -55,8 +19,8 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
         });
     }, [ordered]);
 
-    const primaryOption = METRIC_OPTIONS.find(option => option.key === primaryMetric);
-    const secondaryOption = METRIC_OPTIONS.find(option => option.key === secondaryMetric);
+    const primaryOption = METRIC_LOOKUP[primaryMetric];
+    const secondaryOption = METRIC_LOOKUP[secondaryMetric];
 
     return (
         <div className="panel p-5">

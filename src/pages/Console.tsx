@@ -43,7 +43,7 @@ export default function Console() {
         setDevices(devs);
     }
 
-    // Power chart samples for the selected endpoint
+    // Query samples for use in latest info + chart, polling on the configured interval
     const { samples } = useSamples({
         endpoint: selectedEndpoint,
         limit: 200,

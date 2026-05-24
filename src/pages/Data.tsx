@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useDevices } from "@/hooks/useDevices";
 import { useSamples } from "@/hooks/useSamples";
 import DeviceMap from "@/elements/map/DeviceMap";
@@ -12,6 +12,26 @@ export default function Data() {
     const { devices, loading: devicesLoading } = useDevices();
     const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
     const [mode, setMode] = useState<Mode>("live");
+    const [nowSeconds, setNowSeconds] = useState(() => Math.floor(Date.now() / 1000));
+
+    // In live mode, keep track of the current time to filter samples to the last 24h
+    // and trigger re-renders on the configured polling interval
+    useEffect(() => {
+        if (mode !== "live") {
+            return;
+        }
+
+        const refreshNow = () => setNowSeconds(Math.floor(Date.now() / 1000));
+        const timeout = window.setTimeout(refreshNow, 0);
+        const interval = window.setInterval(() => {
+            setNowSeconds(Math.floor(Date.now() / 1000));
+        }, POLLING.samplesMs);
+
+        return () => {
+            window.clearTimeout(timeout);
+            window.clearInterval(interval);
+        };
+    }, [mode]);
 
     // Historical date range: stored as ISO date strings for input[type=date]
     const [fromDate, setFromDate] = useState(() => {
@@ -24,7 +44,7 @@ export default function Data() {
     // Live mode: last 100 samples, polling on the configured interval
     const { samples: liveSamples, loading: liveLoading } = useSamples({
         endpoint: mode === "live" ? selectedEndpoint : null,
-        limit: 100,
+        limit: 100, // Our limit should be set a bit higher than 24h ago, so we can cut off to exactly 24h
         pollInterval: POLLING.samplesMs,
     });
 
@@ -37,15 +57,17 @@ export default function Data() {
     const rawSamples = mode === "live" ? liveSamples : historicalSamples;
     const loading = mode === "live" ? liveLoading : histLoading;
 
-    // Filter historical samples to the selected date range client-side
     const samples = useMemo(() => {
-        if (mode !== "historical") {
-            return rawSamples;
+        // Filter historical samples to the selected date range client-side
+        if (mode === "historical") {
+            const from = new Date(fromDate).getTime() / 1000;
+            const to = new Date(toDate).getTime() / 1000 + 86400; // inclusive of end day
+            return rawSamples.filter(s => s.unix_time >= from && s.unix_time <= to);
         }
-        const from = new Date(fromDate).getTime() / 1000;
-        const to = new Date(toDate).getTime() / 1000 + 86400; // inclusive of end day
-        return rawSamples.filter(s => s.unix_time >= from && s.unix_time <= to);
-    }, [rawSamples, mode, fromDate, toDate]);
+        // For live mode, show only the last 24h of data to avoid oversaturating the chart
+        const cutoff = nowSeconds - 86400;
+        return rawSamples.filter(s => s.unix_time >= cutoff);
+    }, [rawSamples, mode, fromDate, toDate, nowSeconds]);
 
     // Most recent sample per device (used by the map for hover popups)
     const latestSamples = useMemo(() => {
