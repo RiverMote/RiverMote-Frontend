@@ -71,7 +71,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -113,7 +113,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -146,7 +146,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -179,7 +179,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis yAxisId="left" tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -212,7 +212,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis tick={axisTick} />
                             <YAxis yAxisId="right" orientation="right" tick={axisTick} />
                             <Tooltip labelFormatter={tooltipLabelFormatter} />
-                            <Legend wrapperStyle={{ top: 160 }} />
+                            <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
