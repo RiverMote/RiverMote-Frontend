@@ -1,5 +1,6 @@
 import type { Sample } from "@/types";
-import { fmt, formatTime } from "@/lib/format";
+import { formatTime } from "@/lib/format";
+import { formatMetricValue } from "@/elements/data/metrics";
 import StatCard from "@/elements/ui/StatCard";
 
 interface MetricsPanelProps {
@@ -70,16 +71,16 @@ export default function MetricsPanel({ sample, loading }: MetricsPanelProps) {
                 <section>
                     <h3 className="text-xs uppercase tracking-widest text-water-500 mb-2">Water Quality</h3>
                     <div className="grid grid-cols-2 gap-2">
-                        <StatCard label="Temperature" value={fmt(sample.water_temp, 1, "°C")} />
+                        <StatCard label="Temperature" value={formatMetricValue("water_temp", sample.water_temp)} />
                         <StatCard
                             label="Turbidity"
-                            value={fmt(sample.turbidity, 2, " NTU")}
+                            value={formatMetricValue("turbidity", sample.turbidity)}
                             note={turb.text}
                             noteColor={turb.color}
                         />
                         <StatCard
                             label="TDS"
-                            value={fmt(sample.tds, 0, " ppm")}
+                            value={formatMetricValue("tds", sample.tds)}
                             note={tds.text}
                             noteColor={tds.color}
                         />
@@ -90,12 +91,12 @@ export default function MetricsPanel({ sample, loading }: MetricsPanelProps) {
                 <section>
                     <h3 className="text-xs uppercase tracking-widest text-forest-400 mb-2">Atmosphere</h3>
                     <div className="grid grid-cols-2 gap-2">
-                        <StatCard label="Air Temp" value={fmt(sample.air_temp, 1, "°C")} />
-                        <StatCard label="Humidity" value={fmt(sample.humidity, 0, "%")} />
-                        <StatCard label="Pressure" value={fmt(sample.baro, 1, " hPa")} />
-                        <StatCard label="Wind Speed" value={fmt(sample.air_velocity, 1, " m/s")} />
-                        <StatCard label="UV Index" value={fmt(sample.uv, 1)} />
-                        <StatCard label="Luminance" value={fmt(sample.lum, 0, " lux")} />
+                        <StatCard label="Air Temp" value={formatMetricValue("air_temp", sample.air_temp)} />
+                        <StatCard label="Humidity" value={formatMetricValue("humidity", sample.humidity)} />
+                        <StatCard label="Pressure" value={formatMetricValue("baro", sample.baro)} />
+                        <StatCard label="Wind Speed" value={formatMetricValue("air_velocity", sample.air_velocity)} />
+                        <StatCard label="UV Index" value={formatMetricValue("uv", sample.uv)} />
+                        <StatCard label="Luminance" value={formatMetricValue("lum", sample.lum)} />
                     </div>
                 </section>
 
@@ -103,16 +104,16 @@ export default function MetricsPanel({ sample, loading }: MetricsPanelProps) {
                 <section>
                     <h3 className="text-xs uppercase tracking-widest text-slate-400 mb-2">Particulates</h3>
                     <div className="grid grid-cols-3 gap-2">
-                        <StatCard label="PM1.0" value={fmt(sample.pm1_0, 1, " µg/m³")} />
-                        <StatCard label="PM2.5" value={fmt(sample.pm2_5, 1, " µg/m³")} />
-                        <StatCard label="PM10" value={fmt(sample.pm10, 1, " µg/m³")} />
+                        <StatCard label="PM1.0" value={formatMetricValue("pm1_0", sample.pm1_0)} />
+                        <StatCard label="PM2.5" value={formatMetricValue("pm2_5", sample.pm2_5)} />
+                        <StatCard label="PM10" value={formatMetricValue("pm10", sample.pm10)} />
                     </div>
                 </section>
 
                 {/* Ozone */}
                 <section>
                     <div className="grid grid-cols-1 gap-2">
-                        <StatCard label="Ozone" value={fmt(sample.ozone, 4, " ppm")} />
+                        <StatCard label="Ozone" value={formatMetricValue("ozone", sample.ozone)} />
                     </div>
                 </section>
             </div>

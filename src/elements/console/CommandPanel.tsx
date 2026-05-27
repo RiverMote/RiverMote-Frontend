@@ -10,7 +10,8 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
     const [command, setCommand] = useState<CommandType>("reboot");
     const [otaServer, setOtaServer] = useState("rivermote.org");
     const [otaPath, setOtaPath] = useState("/firmware.bin");
-    const [slotSeconds, setSlotSeconds] = useState("");
+    const [slotSample, setSlotSample] = useState("");
+    const [slotPublish, setSlotPublish] = useState("");
     const [status, setStatus] = useState("");
     const [commands, setCommands] = useState<Command[]>([]);
 
@@ -50,12 +51,13 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 return;
             }
             if (command === "set_slot") {
-                const secondsValue = Number(slotSeconds);
-                if (!Number.isInteger(secondsValue)) {
+                const sampleValue = Number(slotSample);
+                const publishValue = Number(slotPublish);
+                if (!Number.isInteger(sampleValue) || !Number.isInteger(publishValue)) {
                     setStatus("Enter an integer number of seconds");
                     return;
                 }
-                const res = await postCommand(endpoint, "set_slot", { seconds: secondsValue });
+                const res = await postCommand(endpoint, "set_slot", { sample: sampleValue, publish: publishValue });
                 setStatus(res.sent ? "✓ Sent" : "✓ Queued");
                 void loadCommands();
                 return;
@@ -110,9 +112,15 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 {command === "set_slot" && (
                     <div className="flex flex-col md:flex-row gap-2">
                         <input
-                            value={slotSeconds}
-                            onChange={e => setSlotSeconds(e.target.value)}
-                            placeholder="Seconds"
+                            value={slotSample}
+                            onChange={e => setSlotSample(e.target.value)}
+                            placeholder="Sample Interval (Seconds)"
+                            className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
+                        />
+                        <input
+                            value={slotPublish}
+                            onChange={e => setSlotPublish(e.target.value)}
+                            placeholder="Publish Interval (Seconds)"
                             className="flex-1 bg-slate-300/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-slate-600 font-mono focus:outline-none focus:ring-1 focus:ring-forest-500"
                         />
                     </div>

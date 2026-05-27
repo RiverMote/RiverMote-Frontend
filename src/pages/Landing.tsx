@@ -22,12 +22,12 @@ const features = [
     {
         icon: "📡",
         title: "Low-Power IoT",
-        body: "Solar-powered nodes transmit to the cloud, reporting from remote riverbanks with only a cellular connection.",
+        body: "Solar-powered devices transmit to the cloud, leveraging edge computing and celluar infrastructure for minimal deployment effort.",
     },
     {
         icon: "🗺",
         title: "Open Data",
-        body: "All sensor readings are publicly accessible. Browse the live map, query historical ranges, and chart trends directly in your browser!",
+        body: "All sensor readings are publicly accessible. Browse the live map, check historical data, and chart trends directly in your browser!",
     },
 ];
 

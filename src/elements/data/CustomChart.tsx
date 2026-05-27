@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
-import { METRIC_LOOKUP, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
+import { formatMetricValue, METRIC_LOOKUP, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
 
 export default function CustomChart({ samples }: { samples: Sample[] }) {
     const [primaryMetric, setPrimaryMetric] = useState<MetricKey>("battery_v");
@@ -72,9 +72,24 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
                                 scale="time"
                                 tickFormatter={(value: number) => formatShortTime(value)}
                             />
-                            <YAxis yAxisId="left" tick={{ fill: "#64748b", fontSize: 11 }} />
-                            <YAxis yAxisId="right" orientation="right" tick={{ fill: "#64748b", fontSize: 11 }} />
-                            <Tooltip labelFormatter={value => formatTime(value as number)} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={{ fill: "#64748b", fontSize: 11 }}
+                                tickFormatter={value => formatMetricValue(primaryOption.key, value as number)}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={{ fill: "#64748b", fontSize: 11 }}
+                                tickFormatter={value => formatMetricValue(secondaryOption.key, value as number)}
+                            />
+                            <Tooltip
+                                labelFormatter={value => formatTime(value as number)}
+                                formatter={(value, name, props) => [
+                                    formatMetricValue(props.dataKey as MetricKey, value as number),
+                                    name,
+                                ]}
+                            />
                             <Legend />
                             <Line
                                 yAxisId="left"

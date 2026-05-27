@@ -21,6 +21,7 @@ export interface Sample {
     air_temp: number | null;
     humidity: number | null;
     air_velocity: number | null;
+    air_velocity_peak: number | null;
     ozone: number | null;
     uv: number | null;
     lum: number | null;

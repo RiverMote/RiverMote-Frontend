@@ -3,7 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
 import CustomChart from "@/elements/data/CustomChart";
-import { METRIC_LOOKUP } from "@/elements/data/metrics";
+import { formatMetricValue, METRIC_LOOKUP, MetricKey } from "@/elements/data/metrics";
 
 interface ChartSectionProps {
     samples: Sample[];
@@ -32,6 +32,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                 air_temp: s.air_temp,
                 humidity: s.humidity,
                 air_velocity: s.air_velocity,
+                air_velocity_peak: s.air_velocity_peak,
                 baro: s.baro,
                 uv: s.uv,
                 lum: s.lum,
@@ -47,6 +48,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
         return null;
     }
 
+    // Shared props between all graphs
     const axisTick = { fill: "#64748b", fontSize: 11 };
     const xAxisProps = {
         dataKey: "unixTime",
@@ -57,8 +59,16 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
         scale: "time" as const,
         tickFormatter: (value: number) => formatShortTime(value),
     };
+
+    // Custom formatters for graph elements
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tooltipLabelFormatter = (value: any) => formatTime(value as number);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
+    const tooltipValueFormatter = (value: any, name: any, props: any) => [
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+        formatMetricValue(props?.dataKey as MetricKey, value as number),
+        name,
+    ];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
@@ -68,9 +78,18 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis yAxisId="left" tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("water_temp", value as number, true)}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("humidity", value as number, true)}
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -110,9 +129,18 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis yAxisId="left" tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("tds", value as number, true)}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("turbidity", value as number, true)}
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -143,9 +171,21 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis yAxisId="left" tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("air_velocity", value as number, true)}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("baro", value as number, true)}
+                                tickCount={4}
+                                domain={[950, 1050]}
+                                allowDataOverflow
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -153,6 +193,15 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 dataKey="air_velocity"
                                 name={METRIC_LOOKUP.air_velocity.label}
                                 stroke={METRIC_LOOKUP.air_velocity.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="air_velocity_peak"
+                                name={METRIC_LOOKUP.air_velocity_peak.label}
+                                stroke={METRIC_LOOKUP.air_velocity_peak.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -176,9 +225,19 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis yAxisId="left" tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("uv", value as number, true)}
+                                tickCount={4}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("lum", value as number, true)}
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
@@ -209,9 +268,20 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
-                            <YAxis tick={axisTick} />
-                            <YAxis yAxisId="right" orientation="right" tick={axisTick} />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("pm2_5", value as number, true)}
+                                tickCount={4}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("ozone", value as number)}
+                                tickCount={4}
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"

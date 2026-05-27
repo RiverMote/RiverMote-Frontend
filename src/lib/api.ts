@@ -94,7 +94,7 @@ export async function fetchCommands(endpoint: string, status?: string, limit: nu
 export async function postCommand(
     endpoint: string,
     cmd: string,
-    params?: { server?: string; path?: string; seconds?: number },
+    params?: { server?: string; path?: string; sample?: number; publish?: number },
 ): Promise<{ ok: boolean; sent: boolean }> {
     const res = await apiFetch("/api/commands", {
         method: "POST",
