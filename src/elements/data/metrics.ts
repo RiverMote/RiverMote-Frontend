@@ -44,7 +44,7 @@ export const METRIC_OPTIONS: Array<{
     { key: "pm1_0", label: "PM1.0 (µg/m³)", color: "#7c3aed", decimals: 1, unit: " µg/m³" },
     { key: "pm2_5", label: "PM2.5 (µg/m³)", color: "#e879f9", decimals: 1, unit: " µg/m³" },
     { key: "pm10", label: "PM10 (µg/m³)", color: "#f472b6", decimals: 1, unit: " µg/m³" },
-    { key: "chamber_temp", label: "Chamber Temp (°C)", color: "#fb7185", decimals: 1, unit: "°C" },
+    { key: "chamber_temp", label: "Chamber Temp (°C)", color: "#7178fb", decimals: 1, unit: "°C" },
 ];
 
 // Lookup for easy access to metric info by key

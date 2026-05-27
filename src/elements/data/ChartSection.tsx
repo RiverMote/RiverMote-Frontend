@@ -203,6 +203,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 name={METRIC_LOOKUP.air_velocity_peak.label}
                                 stroke={METRIC_LOOKUP.air_velocity_peak.color}
                                 dot={false}
+                                strokeDasharray="4 6"
                                 isAnimationActive={false}
                             />
                             <Line
