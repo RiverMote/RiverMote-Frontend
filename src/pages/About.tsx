@@ -76,7 +76,7 @@ export default function About() {
                         one of the main ambitions of River Mote is to come up with plans for an easy-to-construct device
                         which can be assembled by anyone (think schools and citizen scientists) at little cost, then
                         easily deployed anywhere environmental monitoring is needed. With both River Mote (an autonomous
-                        vehicle) as well as the Mini Motes (data buoys) each are constructed from common materials such
+                        vehicle) as well as the Mini Motes (stationary data buoys) each are constructed from common materials such
                         as PVC pipe which can be purchased from local stores and online.
                         <br />
                         With the advent of inexpensive yet increasingly accurate sensors, plus ever more powerful
