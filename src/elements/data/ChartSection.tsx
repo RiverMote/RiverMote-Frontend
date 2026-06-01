@@ -3,6 +3,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
 import CustomChart from "@/elements/data/CustomChart";
+import { AXIS_TICK, buildTimeTicks, X_AXIS_PROPS } from "@/elements/data/charts";
 import { formatMetricValue, metricLookup, MetricKey } from "@/elements/data/metrics";
 
 interface ChartSectionProps {
@@ -45,22 +46,13 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
     );
     const metrics = metricLookup(units);
 
+    const xTicks = useMemo(() => buildTimeTicks(chartData), [chartData]);
+    const xTickLabels = useMemo(() => new Map(xTicks.map(value => [value, formatShortTime(value)])), [xTicks]);
+
     const hasData = chartData.length > 0;
     if (!hasData && !loading) {
         return null;
     }
-
-    // Shared props between all graphs
-    const axisTick = { fill: "#64748b", fontSize: 11 };
-    const xAxisProps = {
-        dataKey: "unixTime",
-        tick: axisTick,
-        interval: "preserveStartEnd" as const,
-        type: "number" as const,
-        domain: ["dataMin", "dataMax"] as const,
-        scale: "time" as const,
-        tickFormatter: (value: number) => formatShortTime(value),
-    };
 
     // Custom formatters for graph elements
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -79,17 +71,21 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
+                            <XAxis
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
+                            />
                             <YAxis
                                 yAxisId="left"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("water_temp", units, value as number, true)}
                                 domain={["dataMin - 2", "dataMax + 2"]}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("tds", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
@@ -131,17 +127,21 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
+                            <XAxis
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
+                            />
                             <YAxis
                                 yAxisId="left"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("air_temp", units, value as number, true)}
                                 domain={["dataMin - 2", "dataMax + 2"]}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("baro", units, value as number, true)}
                                 tickCount={4}
                                 domain={units === "metric" ? [990, 1040] : [29.2, 30.4]} // Fixed hPa, inHg domains to better display high/low pressures
@@ -186,11 +186,15 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
+                            <XAxis
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
+                            />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("air_velocity", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
@@ -224,17 +228,21 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
+                            <XAxis
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
+                            />
                             <YAxis
                                 yAxisId="left"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("uv", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("lum", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
@@ -267,17 +275,21 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
+                            <XAxis
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
+                            />
                             <YAxis
                                 yAxisId="left"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("pm2_5", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
-                                tick={axisTick}
+                                tick={AXIS_TICK}
                                 tickFormatter={value => formatMetricValue("ozone", units, value as number)}
                                 tickCount={4}
                             />

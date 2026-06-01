@@ -1,24 +1,30 @@
 /* Time formatting helpers */
 
+const timeFormatter = new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+});
+
+const shortTimeFormatter = new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+});
+
+const dateFormatter = new Intl.DateTimeFormat();
+
 export function formatTime(epochSeconds: number): string {
-    return new Date(epochSeconds * 1000).toLocaleString(undefined, {
-        year: "numeric",
-        month: "numeric",
-        day: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
-    });
+    return timeFormatter.format(epochSeconds * 1000);
 }
 
 export function formatShortTime(epochSeconds: number): string {
-    return new Date(epochSeconds * 1000).toLocaleTimeString(undefined, {
-        hour: "numeric",
-        minute: "2-digit",
-    });
+    return shortTimeFormatter.format(epochSeconds * 1000);
 }
 
 export function formatDate(epochSeconds: number): string {
-    return new Date(epochSeconds * 1000).toLocaleDateString();
+    return dateFormatter.format(epochSeconds * 1000);
 }
 
 export function formatRelative(epochSeconds: number): string {

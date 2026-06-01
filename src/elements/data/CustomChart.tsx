@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
+import { AXIS_TICK, buildTimeTicks, X_AXIS_PROPS } from "@/elements/data/charts";
 import { formatMetricValue, metricLookup, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
 
 export default function CustomChart({ samples, units }: { samples: Sample[]; units: "metric" | "imperial" }) {
@@ -11,7 +12,7 @@ export default function CustomChart({ samples, units }: { samples: Sample[]; uni
     const ordered = useMemo(() => [...samples].reverse(), [samples]);
     const customData = useMemo(() => {
         return ordered.map(sample => {
-            const entry: Record<string, number | null> = { unixTime: sample.unix_time };
+            const entry: Record<string, number | null> & { unixTime: number } = { unixTime: sample.unix_time };
             METRIC_OPTIONS.forEach(option => {
                 entry[option.key] = sample[option.key];
             });
@@ -19,6 +20,8 @@ export default function CustomChart({ samples, units }: { samples: Sample[]; uni
         });
     }, [ordered]);
 
+    const xTicks = useMemo(() => buildTimeTicks(customData), [customData]);
+    const xTickLabels = useMemo(() => new Map(xTicks.map(value => [value, formatShortTime(value)])), [xTicks]);
     const metrics = metricLookup(units);
     const primaryOption = primaryMetric ? metrics[primaryMetric] : null;
     const secondaryOption = secondaryMetric ? metrics[secondaryMetric] : null;
@@ -69,18 +72,14 @@ export default function CustomChart({ samples, units }: { samples: Sample[]; uni
                         <LineChart data={customData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.08)" vertical={false} />
                             <XAxis
-                                dataKey="unixTime"
-                                tick={{ fill: "#64748b", fontSize: 11 }}
-                                interval="preserveStartEnd"
-                                type="number"
-                                domain={["dataMin", "dataMax"]}
-                                scale="time"
-                                tickFormatter={(value: number) => formatShortTime(value)}
+                                {...X_AXIS_PROPS}
+                                ticks={xTicks}
+                                tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
                             />
                             {primaryOption ? (
                                 <YAxis
                                     yAxisId="left"
-                                    tick={{ fill: "#64748b", fontSize: 11 }}
+                                    tick={AXIS_TICK}
                                     tickFormatter={value =>
                                         formatMetricValue(primaryOption.key, units, value as number)
                                     }
@@ -90,7 +89,7 @@ export default function CustomChart({ samples, units }: { samples: Sample[]; uni
                                 <YAxis
                                     yAxisId="right"
                                     orientation="right"
-                                    tick={{ fill: "#64748b", fontSize: 11 }}
+                                    tick={AXIS_TICK}
                                     tickFormatter={value =>
                                         formatMetricValue(secondaryOption.key, units, value as number)
                                     }

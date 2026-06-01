@@ -6,6 +6,9 @@ import { fmt } from "@/lib/format";
 // @ts-expect-error: Allow side-effect import of CSS without type declarations
 import "leaflet/dist/leaflet.css";
 
+const FLY_TIMEOUT_MS = 200; // Delay before flying to a newly selected device
+const FLY_DURATION_S = 1.2; // Duration of the fly animation in seconds
+
 interface DeviceMapProps {
     devices: Device[];
     // Most recent sample per device, keyed by endpoint, used for hover preview
@@ -43,6 +46,7 @@ export default function DeviceMap({
 }: DeviceMapProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const mapRef = useRef<L.Map | null>(null);
+    const flyTimeoutRef = useRef<number | null>(null);
     // Keep marker refs so we can update icons when selection changes
     const markersRef = useRef<Map<string, L.Marker>>(new Map());
 
@@ -135,7 +139,7 @@ export default function DeviceMap({
         });
     }, [devices, latestSamples, selectedEndpoint, onSelect]);
 
-    // Fly to selected device when it changes
+    // Fly to selected device when it changes (after a short delay)
     useEffect(() => {
         if (!mapRef.current || !selectedEndpoint) {
             return;
@@ -144,7 +148,21 @@ export default function DeviceMap({
         if (!selected || selected.lat === null || selected.lng === null) {
             return;
         }
-        mapRef.current.flyTo([selected.lat, selected.lng], 14, { duration: 1.2 });
+        const flyLat = selected.lat;
+        const flyLng = selected.lng;
+        if (flyTimeoutRef.current) {
+            window.clearTimeout(flyTimeoutRef.current);
+        }
+        flyTimeoutRef.current = window.setTimeout(() => {
+            mapRef.current?.flyTo([flyLat, flyLng], 14, { duration: FLY_DURATION_S });
+        }, FLY_TIMEOUT_MS);
+
+        return () => {
+            if (flyTimeoutRef.current) {
+                window.clearTimeout(flyTimeoutRef.current);
+                flyTimeoutRef.current = null;
+            }
+        };
     }, [selectedEndpoint, devices]);
 
     return (
