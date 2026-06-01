@@ -1,6 +1,6 @@
 import type { Device, Sample, Command, SensorHealth } from "@/types";
 
-const TOKEN_KEY = "rivermoteToken";
+const TOKEN_KEY = "rivermote:authToken";
 
 /* Auth token helpers */
 
@@ -53,6 +53,16 @@ export async function fetchDevices(): Promise<Device[]> {
     return res.json() as Promise<Device[]>;
 }
 
+export async function fetchSamples(endpoint: string, limit: number | "all" = 100): Promise<Sample[]> {
+    const res = await fetch(`/api/samples?endpoint=${encodeURIComponent(endpoint)}&limit=${limit}`);
+    if (!res.ok) {
+        throw new Error("Failed to fetch samples");
+    }
+    return res.json() as Promise<Sample[]>;
+}
+
+/* Auth-required endpoints */
+
 export async function setDeviceInfo(params: {
     endpoint: string;
     name: string;
@@ -68,16 +78,6 @@ export async function setDeviceInfo(params: {
     }
     return res.json() as Promise<Device>;
 }
-
-export async function fetchSamples(endpoint: string, limit: number | "all" = 100): Promise<Sample[]> {
-    const res = await fetch(`/api/samples?endpoint=${encodeURIComponent(endpoint)}&limit=${limit}`);
-    if (!res.ok) {
-        throw new Error("Failed to fetch samples");
-    }
-    return res.json() as Promise<Sample[]>;
-}
-
-/* Auth-required endpoints */
 
 export async function fetchCommands(endpoint: string, status?: string, limit: number | "all" = 50): Promise<Command[]> {
     const params = new URLSearchParams({ endpoint, limit: String(limit) });

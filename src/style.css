@@ -23,7 +23,7 @@
     --z-1000: 1000;
 }
 @layer base {
-    .about-page a {
+    .underline-links a {
         @apply underline underline-offset-4;
     }
 }
@@ -64,7 +64,12 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: linear-gradient(110deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 45%, rgba(255, 255, 255, 0) 70%);
+    background: linear-gradient(
+        110deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.35) 45%,
+        rgba(255, 255, 255, 0) 70%
+    );
     transform: translateX(-100%);
     animation: loading-sheen 1.4s ease-in-out infinite;
     pointer-events: none;

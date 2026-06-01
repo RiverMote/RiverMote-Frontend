@@ -3,10 +3,11 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianG
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
 import CustomChart from "@/elements/data/CustomChart";
-import { formatMetricValue, METRIC_LOOKUP, MetricKey } from "@/elements/data/metrics";
+import { formatMetricValue, metricLookup, MetricKey } from "@/elements/data/metrics";
 
 interface ChartSectionProps {
     samples: Sample[];
+    units: "metric" | "imperial";
     loading?: boolean;
 }
 
@@ -19,7 +20,7 @@ function ChartCard({ title, loading = false, children }: { title: string; loadin
     );
 }
 
-export default function ChartSection({ samples, loading = false }: ChartSectionProps) {
+export default function ChartSection({ samples, units, loading = false }: ChartSectionProps) {
     const ordered = useMemo(() => [...samples].reverse(), [samples]);
     const chartData = useMemo(
         () =>
@@ -42,6 +43,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
             })),
         [ordered],
     );
+    const metrics = metricLookup(units);
 
     const hasData = chartData.length > 0;
     if (!hasData && !loading) {
@@ -66,63 +68,12 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
     // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-return
     const tooltipValueFormatter = (value: any, name: any, props: any) => [
         // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        formatMetricValue(props?.dataKey as MetricKey, value as number),
+        formatMetricValue(props?.dataKey as MetricKey, units, value as number),
         name,
     ];
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-            <ChartCard title="Temperature" loading={loading}>
-                {hasData && (
-                    <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
-                        <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
-                            <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
-                            <XAxis {...xAxisProps} />
-                            <YAxis
-                                yAxisId="left"
-                                tick={axisTick}
-                                tickFormatter={value => formatMetricValue("water_temp", value as number, true)}
-                            />
-                            <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                tick={axisTick}
-                                tickFormatter={value => formatMetricValue("humidity", value as number, true)}
-                            />
-                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
-                            <Legend />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="water_temp"
-                                name={METRIC_LOOKUP.water_temp.label}
-                                stroke={METRIC_LOOKUP.water_temp.color}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="air_temp"
-                                name={METRIC_LOOKUP.air_temp.label}
-                                stroke={METRIC_LOOKUP.air_temp.color}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey="humidity"
-                                name={METRIC_LOOKUP.humidity.label}
-                                stroke={METRIC_LOOKUP.humidity.color}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                        </LineChart>
-                    </ResponsiveContainer>
-                )}
-            </ChartCard>
-
             <ChartCard title="Water Quality" loading={loading}>
                 {hasData && (
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
@@ -132,22 +83,32 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis
                                 yAxisId="left"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("tds", value as number, true)}
+                                tickFormatter={value => formatMetricValue("water_temp", units, value as number, true)}
+                                domain={["dataMin - 2", "dataMax + 2"]}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("turbidity", value as number, true)}
+                                tickFormatter={value => formatMetricValue("tds", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
+                                dataKey="water_temp"
+                                name={metrics.water_temp.label}
+                                stroke={metrics.water_temp.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
                                 dataKey="tds"
-                                name={METRIC_LOOKUP.tds.label}
-                                stroke={METRIC_LOOKUP.tds.color}
+                                name={metrics.tds.label}
+                                stroke={metrics.tds.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -155,8 +116,63 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="right"
                                 type="monotone"
                                 dataKey="turbidity"
-                                name={METRIC_LOOKUP.turbidity.label}
-                                stroke={METRIC_LOOKUP.turbidity.color}
+                                name={metrics.turbidity.label}
+                                stroke={metrics.turbidity.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                )}
+            </ChartCard>
+
+            <ChartCard title="Weather" loading={loading}>
+                {hasData && (
+                    <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
+                        <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
+                            <XAxis {...xAxisProps} />
+                            <YAxis
+                                yAxisId="left"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("air_temp", units, value as number, true)}
+                                domain={["dataMin - 2", "dataMax + 2"]}
+                            />
+                            <YAxis
+                                yAxisId="right"
+                                orientation="right"
+                                tick={axisTick}
+                                tickFormatter={value => formatMetricValue("baro", units, value as number, true)}
+                                tickCount={4}
+                                domain={units === "metric" ? [990, 1040] : [29.2, 30.4]} // Fixed hPa, inHg domains to better display high/low pressures
+                                allowDataOverflow
+                            />
+                            <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
+                            <Legend />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="air_temp"
+                                name={metrics.air_temp.label}
+                                stroke={metrics.air_temp.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            {/* Humidity uses the background scale instead of an axis scale because its scale is already easy to interpret (from 0-100) */}
+                            <Line
+                                type="monotone"
+                                dataKey="humidity"
+                                name={metrics.humidity.label}
+                                stroke={metrics.humidity.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="baro"
+                                name={metrics.baro.label}
+                                stroke={metrics.baro.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -172,47 +188,30 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <CartesianGrid stroke="rgba(15, 23, 42, 0.1)" vertical={false} />
                             <XAxis {...xAxisProps} />
                             <YAxis
-                                yAxisId="left"
-                                tick={axisTick}
-                                tickFormatter={value => formatMetricValue("air_velocity", value as number, true)}
-                            />
-                            <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("baro", value as number, true)}
-                                tickCount={4}
-                                domain={[950, 1050]}
-                                allowDataOverflow
+                                tickFormatter={value => formatMetricValue("air_velocity", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
-                                yAxisId="left"
+                                yAxisId="right"
                                 type="monotone"
                                 dataKey="air_velocity"
-                                name={METRIC_LOOKUP.air_velocity.label}
-                                stroke={METRIC_LOOKUP.air_velocity.color}
+                                name={metrics.air_velocity.label}
+                                stroke={metrics.air_velocity.color}
                                 dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="air_velocity_peak"
-                                name={METRIC_LOOKUP.air_velocity_peak.label}
-                                stroke={METRIC_LOOKUP.air_velocity_peak.color}
-                                dot={false}
-                                strokeDasharray="4 6"
                                 isAnimationActive={false}
                             />
                             <Line
                                 yAxisId="right"
                                 type="monotone"
-                                dataKey="baro"
-                                name={METRIC_LOOKUP.baro.label}
-                                stroke={METRIC_LOOKUP.baro.color}
+                                dataKey="air_velocity_peak"
+                                name={metrics.air_velocity_peak.label}
+                                stroke={metrics.air_velocity_peak.color}
                                 dot={false}
+                                strokeDasharray="4 6"
                                 isAnimationActive={false}
                             />
                         </LineChart>
@@ -229,14 +228,14 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis
                                 yAxisId="left"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("uv", value as number, true)}
+                                tickFormatter={value => formatMetricValue("uv", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("lum", value as number, true)}
+                                tickFormatter={value => formatMetricValue("lum", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
@@ -244,8 +243,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="uv"
-                                name={METRIC_LOOKUP.uv.label}
-                                stroke={METRIC_LOOKUP.uv.color}
+                                name={metrics.uv.label}
+                                stroke={metrics.uv.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -253,8 +252,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="right"
                                 type="monotone"
                                 dataKey="lum"
-                                name={METRIC_LOOKUP.lum.label}
-                                stroke={METRIC_LOOKUP.lum.color}
+                                name={metrics.lum.label}
+                                stroke={metrics.lum.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -272,14 +271,14 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                             <YAxis
                                 yAxisId="left"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("pm2_5", value as number, true)}
+                                tickFormatter={value => formatMetricValue("pm2_5", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={axisTick}
-                                tickFormatter={value => formatMetricValue("ozone", value as number)}
+                                tickFormatter={value => formatMetricValue("ozone", units, value as number)}
                                 tickCount={4}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
@@ -288,8 +287,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="pm1_0"
-                                name={METRIC_LOOKUP.pm1_0.label}
-                                stroke={METRIC_LOOKUP.pm1_0.color}
+                                name={metrics.pm1_0.label}
+                                stroke={metrics.pm1_0.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -297,8 +296,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="pm2_5"
-                                name={METRIC_LOOKUP.pm2_5.label}
-                                stroke={METRIC_LOOKUP.pm2_5.color}
+                                name={metrics.pm2_5.label}
+                                stroke={metrics.pm2_5.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -306,8 +305,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="left"
                                 type="monotone"
                                 dataKey="pm10"
-                                name={METRIC_LOOKUP.pm10.label}
-                                stroke={METRIC_LOOKUP.pm10.color}
+                                name={metrics.pm10.label}
+                                stroke={metrics.pm10.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -315,8 +314,8 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                                 yAxisId="right"
                                 type="monotone"
                                 dataKey="ozone"
-                                name={METRIC_LOOKUP.ozone.label}
-                                stroke={METRIC_LOOKUP.ozone.color}
+                                name={metrics.ozone.label}
+                                stroke={metrics.ozone.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
@@ -325,7 +324,7 @@ export default function ChartSection({ samples, loading = false }: ChartSectionP
                 )}
             </ChartCard>
 
-            <CustomChart samples={samples} />
+            <CustomChart samples={samples} units={units} />
         </div>
     );
 }

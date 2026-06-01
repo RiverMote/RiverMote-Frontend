@@ -1,6 +1,6 @@
 export default function About() {
     return (
-        <div className="about-page max-w-3xl mx-auto px-6 py-20">
+        <div className="underline-links max-w-4xl mx-auto px-6 py-20">
             <div className="mb-14 text-center">
                 <span className="inline-block mb-3 text-xs text-forest-400 uppercase tracking-widest"></span>
                 <img src="/RM_logo.png" className="mx-auto"></img>
@@ -12,7 +12,7 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">The Project</h2>
                     <p className="text-slate-500 leading-relaxed">
                         River Mote is a citizen science project aimed at building a variety of inexpensive platforms for
@@ -22,7 +22,7 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">What is a mote?</h2>
                     <p className="text-slate-500 leading-relaxed">
                         From IoT and ubiquitous computing the term 'mote' refers to a small device (preferably almost
@@ -38,7 +38,7 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">Why River Mote?</h2>
                     <p className="text-slate-500 leading-relaxed">
                         The planet is endowed with many natural resources, one of which is clean water, that we (humans)
@@ -66,18 +66,18 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">The Hardware</h2>
                     <p className="text-slate-500 leading-relaxed">
-                        Since it's inception
+                        Since its inception
                         <a href="#f2">
                             <sup>2</sup>
                         </a>{" "}
                         one of the main ambitions of River Mote is to come up with plans for an easy-to-construct device
                         which can be assembled by anyone (think schools and citizen scientists) at little cost, then
                         easily deployed anywhere environmental monitoring is needed. With both River Mote (an autonomous
-                        vehicle) as well as the Mini Motes (stationary data buoys) each are constructed from common materials such
-                        as PVC pipe which can be purchased from local stores and online.
+                        vehicle) as well as the Mini Motes (stationary data buoys) each are constructed from common
+                        materials such as PVC pipe which can be purchased from local stores and online.
                         <br />
                         With the advent of inexpensive yet increasingly accurate sensors, plus ever more powerful
                         microcontrollers to connect them to, along with the decreasing cost of cellular data, it is now
@@ -91,17 +91,43 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">The Software</h2>
                     <p className="text-slate-500 leading-relaxed">
-                        lots of crazy software written by a genius (take a bow Myles). The code can be found here
-                        [github link]
+                        River Mote's software follows similar design principles to its hardware, which is to say that it
+                        is designed to support the simple and rapid nature of hardware deployments.
+                        <br />
+                        The River Mote and Mini Mote platforms share a common C++ codebase and ESP32-based electronics
+                        platform. This software is in charge of gathering data from the various sensors aboard each
+                        Mote, which is then either logged to an SD card (on River Mote) or transmitted at regular
+                        intervals over cellular networks to our backend servers (on Mini Mote).
+                        <br />
+                        Additionally, each platform has unique features of its own. River Mote, in addition to its
+                        high-frequency data logging, can connect via Bluetooth to a smartphone to allow for manual
+                        control and a real-time display of information. In the future, it will also support autonomous
+                        navigation via GPS. Mini Mote contains special control flows to allow for precise sample and
+                        publish rate control, which balances data accuracy with low power consumption by leveraging edge
+                        computing to sample hundreds of times per day. Mini Mote can also be easily configured and
+                        updated over-the-air (OTA) so that we can quickly iterate on new features and improvements
+                        without needing to physically access the devices.
+                        <br />
+                        Offshore from the river, we maintain custom server software to collect, process, and display
+                        data flowing in from Mini Mote endpoints. All endpoints can be easily and automatically enrolled
+                        when deployed, which allows them to securely transmit data and receive updates via MQTTS. Data
+                        is received in real-time, where it is then processed and written to an SQLite database,
+                        queryable via this website or direct API access (coming soon).
+                        <br />
+                        All of River Mote's software is fully open-source and can be found on{" "}
+                        <a href="https://github.com/RiverMote" target="_blank">
+                            GitHub
+                        </a>
+                        .
                     </p>
                 </section>
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">The Data</h2>
                     <p className="text-slate-500 leading-relaxed">
                         River Mote supports a variety of sensors which continuously monitor both water and atmospheric
@@ -148,7 +174,7 @@ export default function About() {
             </div>
 
             <div className="flex flex-col gap-10">
-                <section key="?" className="panel p-4">
+                <section className="panel p-4">
                     <h2 className="text-2xl text-slate-600 font-semibold mb-4">Get Involved</h2>
                     <p className="text-slate-500 leading-relaxed">
                         We can be reached at <a href="mailto:info@rivermote.org">info@rivermote.org</a>
@@ -183,7 +209,7 @@ export default function About() {
 
             <p className="text-slate-500 leading-relaxed mt-2" id="f1">
                 <sup>1</sup> While focused on the Chicago river, River Mote can technically be used in any body of water
-                such as a pond, stream, or creek
+                such as a pond, stream, or creek.
                 <br />
                 <sup id="f2">2</sup> River Mote is a project of{" "}
                 <a href="http://www.dountil.design" target="_blank">

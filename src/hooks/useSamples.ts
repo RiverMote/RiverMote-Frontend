@@ -6,6 +6,7 @@ interface UseSamplesOptions {
     endpoint: string | null;
     limit?: number | "all";
     pollInterval?: number;
+    units?: "imperial" | "metric";
 }
 
 interface UseSamplesResult {
@@ -15,7 +16,12 @@ interface UseSamplesResult {
     refresh: () => Promise<void>;
 }
 
-export function useSamples({ endpoint, limit = 100, pollInterval = 0 }: UseSamplesOptions): UseSamplesResult {
+export function useSamples({
+    endpoint,
+    limit = 100,
+    pollInterval = 0,
+    units = "imperial",
+}: UseSamplesOptions): UseSamplesResult {
     const [samples, setSamples] = useState<Sample[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -28,13 +34,26 @@ export function useSamples({ endpoint, limit = 100, pollInterval = 0 }: UseSampl
         setError(null);
         try {
             const data = await fetchSamples(endpoint, limit);
-            setSamples(data);
+            if (units === "metric") {
+                setSamples(data);
+                return;
+            }
+            // Convert to imperial
+            const converted = data.map((s: Sample) => ({
+                ...s,
+                water_temp: s.water_temp !== null ? (s.water_temp * 9) / 5 + 32 : null, // °C to °F
+                air_temp: s.air_temp !== null ? (s.air_temp * 9) / 5 + 32 : null, // °C to °F
+                air_velocity: s.air_velocity !== null ? s.air_velocity * 2.2369362921 : null, // m/s to mph
+                air_velocity_peak: s.air_velocity_peak !== null ? s.air_velocity_peak * 2.2369362921 : null, // m/s to mph
+                baro: s.baro !== null ? s.baro * 0.02952998057228 : null, // hPa to inHg
+            }));
+            setSamples(converted);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error");
         } finally {
             setLoading(false);
         }
-    }, [endpoint, limit]);
+    }, [endpoint, limit, units]);
 
     useEffect(() => {
         // FIXME: look into better ways to handle this

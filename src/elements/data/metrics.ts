@@ -27,34 +27,91 @@ export const METRIC_OPTIONS: Array<{
     color: string;
     decimals: number;
     unit: string;
+    decimalsImperial?: number;
+    unitImperial?: string;
 }> = [
-    { key: "battery_v", label: "Battery (V)", color: "#0f766e", decimals: 2, unit: " V" },
-    { key: "battery_pct", label: "Battery (%)", color: "#2563eb", decimals: 0, unit: "%" },
-    { key: "water_temp", label: "Water Temp (°C)", color: "#0ea5e9", decimals: 1, unit: "°C" },
-    { key: "turbidity", label: "Turbidity (NTU)", color: "#f59e0b", decimals: 2, unit: " NTU" },
-    { key: "tds", label: "TDS (ppm)", color: "#34d399", decimals: 0, unit: " ppm" },
-    { key: "air_temp", label: "Air Temp (°C)", color: "#f87171", decimals: 1, unit: "°C" },
-    { key: "humidity", label: "Humidity (%)", color: "#60a5fa", decimals: 0, unit: "%" },
-    { key: "air_velocity", label: "Air Velocity (m/s)", color: "#15803d", decimals: 1, unit: " m/s" },
-    { key: "air_velocity_peak", label: "Peak Air Velocity (m/s)", color: "#072621", decimals: 1, unit: " m/s" },
-    { key: "ozone", label: "Ozone (ppm)", color: "#22c55e", decimals: 3, unit: " ppm" },
-    { key: "uv", label: "UV (mw/cm²)", color: "#f97316", decimals: 1, unit: " mW/cm²" },
-    { key: "lum", label: "Luminosity (lx)", color: "#eab308", decimals: 0, unit: " lx" },
-    { key: "baro", label: "Pressure (hPa)", color: "#be123c", decimals: 1, unit: " hPa" },
-    { key: "pm1_0", label: "PM1.0 (µg/m³)", color: "#7c3aed", decimals: 1, unit: " µg/m³" },
-    { key: "pm2_5", label: "PM2.5 (µg/m³)", color: "#e879f9", decimals: 1, unit: " µg/m³" },
-    { key: "pm10", label: "PM10 (µg/m³)", color: "#f472b6", decimals: 1, unit: " µg/m³" },
-    { key: "chamber_temp", label: "Chamber Temp (°C)", color: "#7178fb", decimals: 1, unit: "°C" },
+    { key: "battery_v", label: "Battery Voltage", color: "#0f766e", decimals: 2, unit: " V" },
+    { key: "battery_pct", label: "Battery Level", color: "#2563eb", decimals: 0, unit: "%" },
+    { key: "water_temp", label: "Water Temp", color: "#0ea5e9", decimals: 1, unit: "°C", unitImperial: "°F" },
+    { key: "turbidity", label: "Turbidity", color: "#f59e0b", decimals: 2, unit: " NTU" },
+    { key: "tds", label: "TDS", color: "#34d399", decimals: 0, unit: " ppm" },
+    { key: "air_temp", label: "Air Temp", color: "#f87171", decimals: 1, unit: "°C", unitImperial: "°F" },
+    { key: "humidity", label: "Humidity", color: "#60a5fa", decimals: 0, unit: "%" },
+    {
+        key: "air_velocity",
+        label: "Air Velocity",
+        color: "#15803d",
+        decimals: 1,
+        unit: " m/s",
+        unitImperial: " mph",
+    },
+    {
+        key: "air_velocity_peak",
+        label: "Peak Air Velocity",
+        color: "#072621",
+        decimals: 1,
+        unit: " m/s",
+        unitImperial: " mph",
+    },
+    { key: "ozone", label: "Ozone", color: "#22c55e", decimals: 3, unit: " ppm" },
+    { key: "uv", label: "UV", color: "#f97316", decimals: 1, unit: " mW/cm²" },
+    { key: "lum", label: "Luminosity", color: "#eab308", decimals: 0, unit: " lx" },
+    {
+        key: "baro",
+        label: "Pressure",
+        color: "#be123c",
+        decimals: 1,
+        unit: " hPa",
+        decimalsImperial: 2,
+        unitImperial: " inHg",
+    },
+    { key: "pm1_0", label: "PM1.0", color: "#7c3aed", decimals: 1, unit: " µg/m³" },
+    { key: "pm2_5", label: "PM2.5", color: "#e879f9", decimals: 1, unit: " µg/m³" },
+    { key: "pm10", label: "PM10", color: "#f472b6", decimals: 1, unit: " µg/m³" },
+    { key: "chamber_temp", label: "Chamber Temp", color: "#7178fb", decimals: 1, unit: "°C", unitImperial: "°F" },
 ];
+// Cache for metric lookups by units to avoid recomputing on every render
+const METRIC_CACHE: Partial<
+    Record<
+        "metric" | "imperial",
+        Record<MetricKey, { key: MetricKey; label: string; color: string; decimals: number; unit: string }>
+    >
+> = {};
 
 // Lookup for easy access to metric info by key
-export const METRIC_LOOKUP = Object.fromEntries(METRIC_OPTIONS.map(option => [option.key, option])) as Record<
-    MetricKey,
-    { key: MetricKey; label: string; color: string; decimals: number; unit: string }
->;
+export const metricLookup = (units: "metric" | "imperial") => {
+    if (METRIC_CACHE[units]) {
+        return METRIC_CACHE[units];
+    }
+
+    const lookup = Object.fromEntries(
+        METRIC_OPTIONS.map(option => {
+            const useImperial = units === "imperial";
+            const unit = useImperial ? (option.unitImperial ?? option.unit) : option.unit;
+            const decimals = useImperial ? (option.decimalsImperial ?? option.decimals) : option.decimals;
+            return [
+                option.key,
+                {
+                    ...option,
+                    unit,
+                    decimals,
+                    label: `${option.label} (${unit.trim()})`,
+                },
+            ];
+        }),
+    ) as Record<MetricKey, { key: MetricKey; label: string; color: string; decimals: number; unit: string }>;
+
+    METRIC_CACHE[units] = lookup;
+    return lookup;
+};
 
 // Formats a metric value according to its defined decimals and unit, with optional truncation of decimal places
-export const formatMetricValue = (metricKey: MetricKey, value: number | null, truncate: boolean = false) => {
-    const metric = METRIC_LOOKUP[metricKey];
+export const formatMetricValue = (
+    metricKey: MetricKey,
+    units: "metric" | "imperial" = "metric",
+    value: number | null,
+    truncate: boolean = false,
+) => {
+    const metric = metricLookup(units)[metricKey];
     return fmt(value, truncate ? 0 : metric.decimals, metric.unit);
 };

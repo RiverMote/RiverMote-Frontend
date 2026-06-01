@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, Legend } from "recharts";
 import type { Sample } from "@/types";
 import { formatShortTime, formatTime } from "@/lib/format";
-import { formatMetricValue, METRIC_LOOKUP, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
+import { formatMetricValue, metricLookup, METRIC_OPTIONS, type MetricKey } from "@/elements/data/metrics";
 
-export default function CustomChart({ samples }: { samples: Sample[] }) {
-    const [primaryMetric, setPrimaryMetric] = useState<MetricKey>("battery_v");
-    const [secondaryMetric, setSecondaryMetric] = useState<MetricKey>("battery_pct");
+export default function CustomChart({ samples, units }: { samples: Sample[]; units: "metric" | "imperial" }) {
+    const [primaryMetric, setPrimaryMetric] = useState<MetricKey | "">("");
+    const [secondaryMetric, setSecondaryMetric] = useState<MetricKey | "">("");
 
     const ordered = useMemo(() => [...samples].reverse(), [samples]);
     const customData = useMemo(() => {
@@ -19,19 +19,21 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
         });
     }, [ordered]);
 
-    const primaryOption = METRIC_LOOKUP[primaryMetric];
-    const secondaryOption = METRIC_LOOKUP[secondaryMetric];
+    const metrics = metricLookup(units);
+    const primaryOption = primaryMetric ? metrics[primaryMetric] : null;
+    const secondaryOption = secondaryMetric ? metrics[secondaryMetric] : null;
 
     return (
         <div className="panel p-5">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-3 text-xs text-slate-500">
                 <label className="flex items-center gap-2">
-                    <span>Line A</span>
+                    <span>Metric A</span>
                     <select
                         value={primaryMetric}
-                        onChange={event => setPrimaryMetric(event.target.value as MetricKey)}
+                        onChange={event => setPrimaryMetric(event.target.value as MetricKey | "")}
                         className="bg-slate-300/50 border border-white/10 rounded-lg px-2 py-1 text-xs text-slate-600"
                     >
+                        <option value="">Choose...</option>
                         {METRIC_OPTIONS.map(option => (
                             <option key={option.key} value={option.key}>
                                 {option.label}
@@ -40,12 +42,13 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
                     </select>
                 </label>
                 <label className="flex items-center gap-2">
-                    <span>Line B</span>
+                    <span>Metric B</span>
                     <select
                         value={secondaryMetric}
-                        onChange={event => setSecondaryMetric(event.target.value as MetricKey)}
+                        onChange={event => setSecondaryMetric(event.target.value as MetricKey | "")}
                         className="bg-slate-300/50 border border-white/10 rounded-lg px-2 py-1 text-xs text-slate-600"
                     >
+                        <option value="">Choose...</option>
                         {METRIC_OPTIONS.map(option => (
                             <option key={option.key} value={option.key}>
                                 {option.label}
@@ -58,6 +61,8 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
                 <div className="flex items-center justify-center h-48 text-slate-600 text-sm">
                     No data for this device
                 </div>
+            ) : !primaryOption && !secondaryOption ? (
+                <div className="flex items-center justify-center h-55 text-slate-600 text-sm">Choose data to plot</div>
             ) : (
                 <div className="h-55">
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
@@ -72,43 +77,55 @@ export default function CustomChart({ samples }: { samples: Sample[] }) {
                                 scale="time"
                                 tickFormatter={(value: number) => formatShortTime(value)}
                             />
-                            <YAxis
-                                yAxisId="left"
-                                tick={{ fill: "#64748b", fontSize: 11 }}
-                                tickFormatter={value => formatMetricValue(primaryOption.key, value as number)}
-                            />
-                            <YAxis
-                                yAxisId="right"
-                                orientation="right"
-                                tick={{ fill: "#64748b", fontSize: 11 }}
-                                tickFormatter={value => formatMetricValue(secondaryOption.key, value as number)}
-                            />
-                            <Tooltip
-                                labelFormatter={value => formatTime(value as number)}
-                                formatter={(value, name, props) => [
-                                    formatMetricValue(props.dataKey as MetricKey, value as number),
-                                    name,
-                                ]}
-                            />
-                            <Legend />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey={primaryMetric}
-                                name={primaryOption?.label ?? "Line A"}
-                                stroke={primaryOption?.color ?? "#0f766e"}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
-                            <Line
-                                yAxisId="right"
-                                type="monotone"
-                                dataKey={secondaryMetric}
-                                name={secondaryOption?.label ?? "Line B"}
-                                stroke={secondaryOption?.color ?? "#2563eb"}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
+                            {primaryOption ? (
+                                <YAxis
+                                    yAxisId="left"
+                                    tick={{ fill: "#64748b", fontSize: 11 }}
+                                    tickFormatter={value =>
+                                        formatMetricValue(primaryOption.key, units, value as number)
+                                    }
+                                />
+                            ) : null}
+                            {secondaryOption ? (
+                                <YAxis
+                                    yAxisId="right"
+                                    orientation="right"
+                                    tick={{ fill: "#64748b", fontSize: 11 }}
+                                    tickFormatter={value =>
+                                        formatMetricValue(secondaryOption.key, units, value as number)
+                                    }
+                                />
+                            ) : null}
+                            {primaryOption || secondaryOption ? (
+                                <Tooltip
+                                    labelFormatter={value => formatTime(value as number)}
+                                    formatter={(value, name, props) => [
+                                        formatMetricValue(props.dataKey as MetricKey, units, value as number),
+                                        name,
+                                    ]}
+                                />
+                            ) : null}
+                            {primaryOption || secondaryOption ? <Legend /> : null}
+                            {primaryOption ? (
+                                <Line
+                                    yAxisId="left"
+                                    type="monotone"
+                                    dataKey={primaryMetric}
+                                    name={primaryOption.label}
+                                    stroke={primaryOption.color}
+                                    dot={false}
+                                />
+                            ) : null}
+                            {secondaryOption ? (
+                                <Line
+                                    yAxisId="right"
+                                    type="monotone"
+                                    dataKey={secondaryMetric}
+                                    name={secondaryOption.label}
+                                    stroke={secondaryOption.color}
+                                    dot={false}
+                                />
+                            ) : null}
                         </LineChart>
                     </ResponsiveContainer>
                 </div>

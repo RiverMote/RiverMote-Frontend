@@ -8,11 +8,33 @@ import { POLLING } from "@/lib/polling";
 
 type Mode = "live" | "historical";
 
+const STORAGE_ENDPOINT_KEY = "rivermote:selectedEndpoint";
+const STORAGE_UNITS_KEY = "rivermote:units";
+
 export default function Data() {
     const { devices, loading: devicesLoading } = useDevices();
-    const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+    const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(() => {
+        return localStorage.getItem(STORAGE_ENDPOINT_KEY);
+    });
     const [mode, setMode] = useState<Mode>("live");
+    const [units, setUnits] = useState<"metric" | "imperial">(() => {
+        const stored = localStorage.getItem(STORAGE_UNITS_KEY);
+        return stored === "metric" || stored === "imperial" ? stored : "imperial"; // Default to imperial
+    });
     const [nowSeconds, setNowSeconds] = useState(() => Math.floor(Date.now() / 1000));
+
+    // Persist selected endpoint and units to local storage so they survive page reloads
+    useEffect(() => {
+        if (selectedEndpoint) {
+            localStorage.setItem(STORAGE_ENDPOINT_KEY, selectedEndpoint);
+        } else {
+            localStorage.removeItem(STORAGE_ENDPOINT_KEY);
+        }
+    }, [selectedEndpoint]);
+
+    useEffect(() => {
+        localStorage.setItem(STORAGE_UNITS_KEY, units);
+    }, [units]);
 
     // In live mode, keep track of the current time to filter samples to the last 24h
     // and trigger re-renders on the configured polling interval
@@ -45,6 +67,7 @@ export default function Data() {
     const { samples: liveSamples, loading: liveLoading } = useSamples({
         endpoint: mode === "live" ? selectedEndpoint : null,
         limit: 100, // Our limit should be set a bit higher than 24h ago, so we can cut off to exactly 24h
+        units,
         pollInterval: POLLING.samplesMs,
     });
 
@@ -52,6 +75,7 @@ export default function Data() {
     const { samples: historicalSamples, loading: histLoading } = useSamples({
         endpoint: mode === "historical" ? selectedEndpoint : null,
         limit: "all",
+        units,
     });
 
     const rawSamples = mode === "live" ? liveSamples : historicalSamples;
@@ -119,6 +143,19 @@ export default function Data() {
                         />
                     </div>
                 )}
+                <div className="flex rounded-full border border-slate-300 overflow-hidden ml-auto">
+                    {(["metric", "imperial"] as const).map(option => (
+                        <button
+                            key={option}
+                            onClick={() => setUnits(option)}
+                            className={`px-4 py-1.5 text-sm font-medium capitalize transition-colors duration-150 ${
+                                units === option ? "bg-forest-700 text-white" : "text-slate-600 hover:text-slate-400"
+                            }`}
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Main layout: map (left) + metrics (right) */}
@@ -132,13 +169,13 @@ export default function Data() {
                 />
 
                 <div className="panel overflow-hidden">
-                    <MetricsPanel sample={latestSample} loading={loading && !!selectedEndpoint} />
+                    <MetricsPanel sample={latestSample} units={units} loading={loading && !!selectedEndpoint} />
                 </div>
             </div>
 
             {/* Charts are full width below the map/metrics split */}
             {selectedEndpoint && (samples.length > 0 || loading) && (
-                <ChartSection samples={samples} loading={loading} />
+                <ChartSection samples={samples} units={units} loading={loading} />
             )}
         </div>
     );
