@@ -19,8 +19,6 @@
     --color-water-400: #38bdf8;
     --color-water-500: #0ea5e9;
     --color-water-600: #0284c7;
-
-    --z-1000: 1000;
 }
 @layer base {
     .underline-links a {

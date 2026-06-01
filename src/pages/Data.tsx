@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useDevices } from "@/hooks/useDevices";
-import { useSamples } from "@/hooks/useSamples";
+import { useLatestSamples, useSamples } from "@/hooks/useSamples";
 import DeviceMap from "@/elements/map/DeviceMap";
 import MetricsPanel from "@/elements/data/MetricsPanel";
 import ChartSection from "@/elements/data/ChartSection";
@@ -31,10 +31,11 @@ export default function Data() {
             localStorage.removeItem(STORAGE_ENDPOINT_KEY);
         }
     }, [selectedEndpoint]);
-
     useEffect(() => {
         localStorage.setItem(STORAGE_UNITS_KEY, units);
     }, [units]);
+
+    /* Live mode */
 
     // In live mode, keep track of the current time to filter samples to the last 24h
     // and trigger re-renders on the configured polling interval
@@ -55,6 +56,16 @@ export default function Data() {
         };
     }, [mode]);
 
+    // Live mode: request last 100 samples, and configure polling on the configured interval
+    const { samples: liveSamples, loading: liveLoading } = useSamples({
+        endpoint: mode === "live" ? selectedEndpoint : null,
+        limit: 100, // Our limit should be set a bit higher than 24h ago, so we can cut off to exactly 24h
+        units,
+        pollInterval: POLLING.samplesMs,
+    });
+
+    /* Historical mode */
+
     // Historical date range: stored as ISO date strings for input[type=date]
     const [fromDate, setFromDate] = useState(() => {
         const d = new Date();
@@ -63,48 +74,51 @@ export default function Data() {
     });
     const [toDate, setToDate] = useState(() => new Date().toISOString().slice(0, 10));
 
-    // Live mode: last 100 samples, polling on the configured interval
-    const { samples: liveSamples, loading: liveLoading } = useSamples({
-        endpoint: mode === "live" ? selectedEndpoint : null,
-        limit: 100, // Our limit should be set a bit higher than 24h ago, so we can cut off to exactly 24h
-        units,
-        pollInterval: POLLING.samplesMs,
-    });
-
-    // Historical mode: all samples (backend will apply its own cap)
-    const { samples: historicalSamples, loading: histLoading } = useSamples({
+    // Historical mode: request all samples in the selected date range
+    const historicalRange = useMemo(() => {
+        const from = new Date(fromDate).getTime() / 1000;
+        const to = new Date(toDate).getTime() / 1000 + 86400; // inclusive of end day
+        return { from, to };
+    }, [fromDate, toDate]);
+    const {
+        samples: historicalSamples,
+        loading: histLoading,
+        truncated: historicalTruncated,
+    } = useSamples({
         endpoint: mode === "historical" ? selectedEndpoint : null,
         limit: "all",
+        start: historicalRange.from,
+        end: historicalRange.to,
         units,
     });
 
+    // Latest sample for all devices, used for hover popups on the map
+    const { samples: latestSamplesAll, loading: latestLoading } = useLatestSamples();
+
+    // Send out a request for either live or historical samples based on the selected mode
     const rawSamples = mode === "live" ? liveSamples : historicalSamples;
-    const loading = mode === "live" ? liveLoading : histLoading;
+    const loading = mode === "live" ? liveLoading : histLoading; // Loading state for API request
 
     const samples = useMemo(() => {
-        // Filter historical samples to the selected date range client-side
+        // For historical mode, the backend has already filtered to the selected date range, so we can just return what we got
         if (mode === "historical") {
-            const from = new Date(fromDate).getTime() / 1000;
-            const to = new Date(toDate).getTime() / 1000 + 86400; // inclusive of end day
-            return rawSamples.filter(s => s.unix_time >= from && s.unix_time <= to);
+            return rawSamples;
         }
-        // For live mode, show only the last 24h of data to avoid oversaturating the chart
+        // For live mode, use a rolling 24h window based on the current time
         const cutoff = nowSeconds - 86400;
         return rawSamples.filter(s => s.unix_time >= cutoff);
-    }, [rawSamples, mode, fromDate, toDate, nowSeconds]);
+    }, [rawSamples, mode, nowSeconds]);
 
     // Most recent sample per device (used by the map for hover popups)
     const latestSamples = useMemo(() => {
-        const map: Record<string, (typeof samples)[0]> = {};
-        // Samples are newest-first from the API
-        samples.forEach(s => {
+        const map: Record<string, (typeof latestSamplesAll)[0]> = {};
+        latestSamplesAll.forEach(s => {
             if (!map[s.endpoint]) {
                 map[s.endpoint] = s;
             }
         });
-        // Also include live latest from all devices, not just selected
         return map;
-    }, [samples]);
+    }, [latestSamplesAll]);
 
     const latestSample = samples.length > 0 ? samples[0] : null;
 
@@ -165,7 +179,7 @@ export default function Data() {
                     latestSamples={latestSamples}
                     selectedEndpoint={selectedEndpoint}
                     onSelect={setSelectedEndpoint}
-                    loading={devicesLoading}
+                    loading={devicesLoading || latestLoading}
                 />
 
                 <div className="panel overflow-hidden">
@@ -174,6 +188,12 @@ export default function Data() {
             </div>
 
             {/* Charts are full width below the map/metrics split */}
+            {mode === "historical" && historicalTruncated ? (
+                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                    Not all data from the requested date range could be displayed. Please choose a narrower range and
+                    try again.
+                </div>
+            ) : null}
             {selectedEndpoint && (samples.length > 0 || loading) && (
                 <ChartSection samples={samples} units={units} loading={loading} />
             )}

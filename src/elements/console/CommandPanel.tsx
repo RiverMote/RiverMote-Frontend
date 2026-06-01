@@ -14,11 +14,13 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
     const [slotPublish, setSlotPublish] = useState("");
     const [status, setStatus] = useState("");
     const [commands, setCommands] = useState<Command[]>([]);
+    const [truncated, setTruncated] = useState(false);
 
     async function loadCommands() {
         try {
             const data = await fetchCommands(endpoint, "active", "all");
-            setCommands(data);
+            setCommands(data.commands);
+            setTruncated(data.truncated);
         } catch {
             // silently ignore refresh failures
         }
@@ -127,6 +129,7 @@ export default function CommandPanel({ endpoint }: { endpoint: string }) {
                 )}
             </div>
             {status && <p className="text-xs text-slate-400">{status}</p>}
+            {truncated ? <p className="text-xs text-amber-600">Not commands could be displayed.</p> : null}
 
             {/* Active command queue */}
             {commands.length > 0 && (

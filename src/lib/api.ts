@@ -53,12 +53,31 @@ export async function fetchDevices(): Promise<Device[]> {
     return res.json() as Promise<Device[]>;
 }
 
-export async function fetchSamples(endpoint: string, limit: number | "all" = 100): Promise<Sample[]> {
-    const res = await fetch(`/api/samples?endpoint=${encodeURIComponent(endpoint)}&limit=${limit}`);
+export async function fetchSamples(params?: {
+    endpoint?: string | null;
+    limit?: number | "all";
+    start?: number;
+    end?: number;
+}): Promise<{ samples: Sample[]; truncated: boolean }> {
+    const searchParams = new URLSearchParams();
+    if (params?.endpoint) {
+        searchParams.set("endpoint", params.endpoint);
+    }
+    if (params?.limit !== undefined) {
+        searchParams.set("limit", String(params.limit));
+    }
+    if (params?.start !== undefined) {
+        searchParams.set("start", String(params.start));
+    }
+    if (params?.end !== undefined) {
+        searchParams.set("end", String(params.end));
+    }
+    const query = searchParams.toString();
+    const res = await fetch(query ? `/api/samples?${query}` : "/api/samples");
     if (!res.ok) {
         throw new Error("Failed to fetch samples");
     }
-    return res.json() as Promise<Sample[]>;
+    return res.json() as Promise<{ samples: Sample[]; truncated: boolean }>;
 }
 
 /* Auth-required endpoints */
@@ -79,7 +98,11 @@ export async function setDeviceInfo(params: {
     return res.json() as Promise<Device>;
 }
 
-export async function fetchCommands(endpoint: string, status?: string, limit: number | "all" = 50): Promise<Command[]> {
+export async function fetchCommands(
+    endpoint: string,
+    status?: string,
+    limit: number | "all" = 50,
+): Promise<{ commands: Command[]; truncated: boolean }> {
     const params = new URLSearchParams({ endpoint, limit: String(limit) });
     if (status) {
         params.set("status", status);
@@ -88,7 +111,7 @@ export async function fetchCommands(endpoint: string, status?: string, limit: nu
     if (!res.ok) {
         throw new Error("Failed to fetch commands");
     }
-    return res.json() as Promise<Command[]>;
+    return res.json() as Promise<{ commands: Command[]; truncated: boolean }>;
 }
 
 export async function postCommand(

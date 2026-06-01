@@ -6,6 +6,8 @@ import { fmt } from "@/lib/format";
 // @ts-expect-error: Allow side-effect import of CSS without type declarations
 import "leaflet/dist/leaflet.css";
 
+const DEFAULT_CENTER: [number, number] = [41.9125069, -87.7427352]; // Default map center (Chicago) for when no device is selected
+const DEFAULT_ZOOM = 11; // Default zoom level when no device is selected
 const FLY_TIMEOUT_MS = 200; // Delay before flying to a newly selected device
 const FLY_DURATION_S = 1.2; // Duration of the fly animation in seconds
 
@@ -14,7 +16,7 @@ interface DeviceMapProps {
     // Most recent sample per device, keyed by endpoint, used for hover preview
     latestSamples: Record<string, Sample>;
     selectedEndpoint: string | null;
-    onSelect: (endpoint: string) => void;
+    onSelect: (endpoint: string | null) => void;
     loading?: boolean;
 }
 
@@ -56,8 +58,8 @@ export default function DeviceMap({
             return;
         }
         mapRef.current = L.map(containerRef.current, {
-            center: [41.9125069, -87.7427352], // Chicago
-            zoom: 11,
+            center: DEFAULT_CENTER,
+            zoom: DEFAULT_ZOOM,
             zoomControl: true,
         });
 
@@ -165,10 +167,27 @@ export default function DeviceMap({
         };
     }, [selectedEndpoint, devices]);
 
+    // Return to default view when selection clears
+    useEffect(() => {
+        if (!mapRef.current || selectedEndpoint) {
+            return;
+        }
+        mapRef.current.flyTo(DEFAULT_CENTER, DEFAULT_ZOOM, { duration: FLY_DURATION_S });
+    }, [selectedEndpoint]);
+
     return (
         <div className="relative w-full h-full rounded-xl overflow-hidden border border-slate-300" aria-busy={loading}>
             <div ref={containerRef} className="w-full h-full" style={{ minHeight: "400px" }} />
             {loading && <div className="loading-sheen loading-sheen-overlay" />}
+            {selectedEndpoint ? (
+                <button
+                    type="button"
+                    onClick={() => onSelect(null)}
+                    className="z-1500 absolute top-3 right-3 rounded-full border border-slate-200/80 bg-white/90 px-3 py-1 text-xs text-slate-500 shadow-sm transition hover:text-slate-700"
+                >
+                    Reset view
+                </button>
+            ) : null}
         </div>
     );
 }
