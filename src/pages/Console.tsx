@@ -158,7 +158,7 @@ export default function Console() {
                 </div>
 
                 {/* Right: historical chart */}
-                <CustomChart samples={samples} />
+                <CustomChart samples={samples} units={"metric"} />
             </div>
         </div>
     );
