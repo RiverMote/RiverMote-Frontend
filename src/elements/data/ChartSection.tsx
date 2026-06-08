@@ -109,7 +109,6 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                                 isAnimationActive={false}
                             />
                             <Line
-                                yAxisId="right"
                                 type="monotone"
                                 dataKey="turbidity"
                                 name={metrics.turbidity.label}
