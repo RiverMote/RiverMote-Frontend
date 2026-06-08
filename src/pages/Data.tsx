@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useDevices } from "@/hooks/useDevices";
 import { useLatestSamples, useSamples } from "@/hooks/useSamples";
+import { useUnits } from "@/hooks/useUnits";
 import DeviceMap from "@/elements/map/DeviceMap";
 import MetricsPanel from "@/elements/data/MetricsPanel";
 import ChartSection from "@/elements/data/ChartSection";
@@ -9,7 +10,6 @@ import { POLLING } from "@/lib/polling";
 type Mode = "live" | "historical";
 
 const STORAGE_ENDPOINT_KEY = "rivermote:selectedEndpoint";
-const STORAGE_UNITS_KEY = "rivermote:units";
 
 export default function Data() {
     const { devices, loading: devicesLoading } = useDevices();
@@ -17,10 +17,7 @@ export default function Data() {
         return localStorage.getItem(STORAGE_ENDPOINT_KEY);
     });
     const [mode, setMode] = useState<Mode>("live");
-    const [units, setUnits] = useState<"metric" | "imperial">(() => {
-        const stored = localStorage.getItem(STORAGE_UNITS_KEY);
-        return stored === "metric" || stored === "imperial" ? stored : "imperial"; // Default to imperial
-    });
+    const { units, setUnits } = useUnits();
     const [nowSeconds, setNowSeconds] = useState(() => Math.floor(Date.now() / 1000));
 
     // Persist selected endpoint and units to local storage so they survive page reloads
@@ -31,9 +28,6 @@ export default function Data() {
             localStorage.removeItem(STORAGE_ENDPOINT_KEY);
         }
     }, [selectedEndpoint]);
-    useEffect(() => {
-        localStorage.setItem(STORAGE_UNITS_KEY, units);
-    }, [units]);
 
     /* Live mode */
 

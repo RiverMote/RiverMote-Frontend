@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
 import { auth, fetchHealth, fetchDevices } from "@/lib/api";
 import { useSamples } from "@/hooks/useSamples";
-import { fmt, formatTime, formatRelative } from "@/lib/format";
+import { useUnits } from "@/hooks/useUnits";
+import { formatTime, formatRelative } from "@/lib/format";
 import { POLLING } from "@/lib/polling";
 import type { Device, SensorHealth } from "@/types";
 import CommandPanel from "@/elements/console/CommandPanel";
@@ -10,12 +11,14 @@ import DeviceInfoPanel from "@/elements/console/DeviceInfoPanel";
 import HealthRow from "@/elements/console/HealthRow";
 import { SENSOR_KEYS } from "@/elements/console/sensorKeys";
 import CustomChart from "@/elements/data/CustomChart";
+import { formatMetricValue } from "@/elements/data/metrics";
 
 export default function Console() {
     const navigate = useNavigate();
     const [devices, setDevices] = useState<Device[]>([]);
     const [health, setHealth] = useState<SensorHealth[]>([]);
     const [selectedEndpoint, setSelectedEndpoint] = useState<string | null>(null);
+    const { units } = useUnits();
 
     const deviceMap = useMemo(() => new Map(devices.map(device => [device.endpoint, device])), [devices]);
 
@@ -138,9 +141,10 @@ export default function Console() {
                             <h3 className="text-xl text-slate-600 font-semibold mb-3">Latest Sample</h3>
                             <div className="grid grid-cols-3 gap-2 text-xs font-mono text-slate-500">
                                 <div>
-                                    🔋 {fmt(samples[0].battery_v, 2, " V")} / {fmt(samples[0].battery_pct, 0, "%")}
+                                    🔋 {formatMetricValue("battery_v", units, samples[0].battery_v)} /{" "}
+                                    {formatMetricValue("battery_pct", units, samples[0].battery_pct)}
                                 </div>
-                                <div>📦 {fmt(samples[0].chamber_temp, 1, "°C")}</div>
+                                <div>📦 {formatMetricValue("chamber_temp", units, samples[0].chamber_temp)}</div>
                                 <div className="text-slate-500 col-span-3">{formatTime(samples[0].unix_time)}</div>
                             </div>
                         </div>
@@ -158,7 +162,7 @@ export default function Console() {
                 </div>
 
                 {/* Right: historical chart */}
-                <CustomChart samples={samples} units={"metric"} />
+                <CustomChart samples={samples} units={units} />
             </div>
         </div>
     );
