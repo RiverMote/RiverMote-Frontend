@@ -76,8 +76,8 @@ export default function Data() {
 
     // Historical mode: request all samples in the selected date range
     const historicalRange = useMemo(() => {
-        const from = new Date(fromDate).getTime() / 1000;
-        const to = new Date(toDate).getTime() / 1000 + 86400; // inclusive of end day
+        const from = new Date(fromDate + "T00:00:00").getTime() / 1000;
+        const to = new Date(toDate + "T00:00:00").getTime() / 1000 + 86400; // inclusive of end day
         return { from, to };
     }, [fromDate, toDate]);
     const {
@@ -93,7 +93,10 @@ export default function Data() {
     });
 
     // Latest sample for all devices, used for hover popups on the map
-    const { samples: latestSamplesAll, loading: latestLoading } = useLatestSamples();
+    const { samples: latestSamplesAll, loading: latestLoading } = useLatestSamples({
+        pollInterval: POLLING.samplesMs,
+        units,
+    });
 
     // Send out a request for either live or historical samples based on the selected mode
     const rawSamples = mode === "live" ? liveSamples : historicalSamples;
@@ -177,13 +180,19 @@ export default function Data() {
                 <DeviceMap
                     devices={devices}
                     latestSamples={latestSamples}
+                    units={units}
                     selectedEndpoint={selectedEndpoint}
                     onSelect={setSelectedEndpoint}
                     loading={devicesLoading || latestLoading}
                 />
 
                 <div className="panel overflow-hidden">
-                    <MetricsPanel sample={latestSample} units={units} loading={loading && !!selectedEndpoint} />
+                    <MetricsPanel
+                        mode={mode}
+                        sample={latestSample}
+                        units={units}
+                        loading={loading && !!selectedEndpoint}
+                    />
                 </div>
             </div>
 

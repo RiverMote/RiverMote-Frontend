@@ -5,6 +5,7 @@ import { formatMetricValue } from "@/elements/data/metrics";
 import StatCard from "@/elements/ui/StatCard";
 
 interface MetricsPanelProps {
+    mode: "live" | "historical";
     sample: Sample | null;
     units: "metric" | "imperial";
     loading: boolean;
@@ -110,7 +111,7 @@ function ozoneLabel(val: number | null): { text: string; color: string } {
     return { text: "Hazardous", color: "text-maroon-400" };
 }
 
-export default function MetricsPanel({ sample, units, loading }: MetricsPanelProps) {
+export default function MetricsPanel({ mode, sample, units, loading }: MetricsPanelProps) {
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
     if (!sample) {
@@ -144,7 +145,9 @@ export default function MetricsPanel({ sample, units, loading }: MetricsPanelPro
                 className="flex flex-col gap-4 h-full overflow-y-auto p-4 border border-slate-300 rounded-lg"
             >
                 <div className="flex items-center justify-between">
-                    <h2 className="text-xl text-slate-600 font-semibold">Latest Data</h2>
+                    <h2 className="text-xl text-slate-600 font-semibold">
+                        {mode === "live" ? "Latest Data" : "Historical Data"}
+                    </h2>
                     <span className="text-xs font-mono text-slate-500">{formatTime(sample.unix_time)}</span>
                 </div>
 

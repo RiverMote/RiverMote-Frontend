@@ -19,6 +19,17 @@ interface UseSamplesResult {
     refresh: () => Promise<void>;
 }
 
+const convertToImperial = (samples: Sample[]): Sample[] =>
+    samples.map(sample => ({
+        ...sample,
+        water_temp: sample.water_temp !== null ? (sample.water_temp * 9) / 5 + 32 : null, // °C to °F
+        air_temp: sample.air_temp !== null ? (sample.air_temp * 9) / 5 + 32 : null, // °C to °F
+        air_velocity: sample.air_velocity !== null ? sample.air_velocity * 2.2369362921 : null, // m/s to mph
+        air_velocity_peak: sample.air_velocity_peak !== null ? sample.air_velocity_peak * 2.2369362921 : null, // m/s to mph
+        baro: sample.baro !== null ? sample.baro * 0.02952998057228 : null, // hPa to inHg
+        chamber_temp: sample.chamber_temp !== null ? (sample.chamber_temp * 9) / 5 + 32 : null, // °C to °F
+    }));
+
 export function useSamples({
     endpoint,
     limit = 100,
@@ -41,20 +52,11 @@ export function useSamples({
         try {
             const data = await fetchSamples({ endpoint, limit, start, end });
             setTruncated(data.truncated);
-            if (units === "metric") {
-                setSamples(data.samples);
+            if (units === "imperial") {
+                setSamples(convertToImperial(data.samples));
                 return;
             }
-            // Convert to imperial
-            const converted = data.samples.map((s: Sample) => ({
-                ...s,
-                water_temp: s.water_temp !== null ? (s.water_temp * 9) / 5 + 32 : null, // °C to °F
-                air_temp: s.air_temp !== null ? (s.air_temp * 9) / 5 + 32 : null, // °C to °F
-                air_velocity: s.air_velocity !== null ? s.air_velocity * 2.2369362921 : null, // m/s to mph
-                air_velocity_peak: s.air_velocity_peak !== null ? s.air_velocity_peak * 2.2369362921 : null, // m/s to mph
-                baro: s.baro !== null ? s.baro * 0.02952998057228 : null, // hPa to inHg
-            }));
-            setSamples(converted);
+            setSamples(data.samples);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error");
         } finally {
@@ -80,7 +82,7 @@ export function useSamples({
     return { samples, truncated, loading, error, refresh: load };
 }
 
-export function useLatestSamples(pollInterval = 0): UseSamplesResult {
+export function useLatestSamples({ pollInterval = 0, units = "imperial" }): UseSamplesResult {
     const [samples, setSamples] = useState<Sample[]>([]);
     const [truncated, setTruncated] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -91,16 +93,21 @@ export function useLatestSamples(pollInterval = 0): UseSamplesResult {
         setError(null);
         try {
             const data = await fetchSamples();
-            setSamples(data.samples);
             setTruncated(data.truncated);
+            if (units === "imperial") {
+                setSamples(convertToImperial(data.samples));
+                return;
+            }
+            setSamples(data.samples);
         } catch (e) {
             setError(e instanceof Error ? e.message : "Unknown error");
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [units]);
 
     useEffect(() => {
+        // FIXME: same issue as above, need to look into better ways to handle this
         // eslint-disable-next-line react-hooks/set-state-in-effect
         void load();
     }, [load]);

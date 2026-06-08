@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import type { Device, Sample } from "@/types";
-import { fmt } from "@/lib/format";
+import { formatMetricValue } from "@/elements/data/metrics";
 
 // @ts-expect-error: Allow side-effect import of CSS without type declarations
 import "leaflet/dist/leaflet.css";
@@ -15,6 +15,7 @@ interface DeviceMapProps {
     devices: Device[];
     // Most recent sample per device, keyed by endpoint, used for hover preview
     latestSamples: Record<string, Sample>;
+    units: "metric" | "imperial";
     selectedEndpoint: string | null;
     onSelect: (endpoint: string | null) => void;
     loading?: boolean;
@@ -42,6 +43,7 @@ function makeIcon(selected: boolean) {
 export default function DeviceMap({
     devices,
     latestSamples,
+    units,
     selectedEndpoint,
     onSelect,
     loading = false,
@@ -110,9 +112,9 @@ export default function DeviceMap({
                         sample
                             ? `
                         <div class="font-mono text-slate-500">
-                            <div>💧 ${fmt(sample.water_temp, 1, "°C")} water</div>
-                            <div>🌫 TDS ${fmt(sample.tds, 0, " ppm")}</div>
-                            <div>🌡 ${fmt(sample.air_temp, 1, "°C")} air</div>
+                            <div>💧 ${formatMetricValue("water_temp", units, sample.water_temp)} water</div>
+                            <div>🌫 TDS ${formatMetricValue("tds", units, sample.tds)}</div>
+                            <div>🌡 ${formatMetricValue("air_temp", units, sample.air_temp)} air</div>
                         </div>`
                             : `<div class="text-sm text-slate-500">Click to see data</div>`
                     }
@@ -139,7 +141,7 @@ export default function DeviceMap({
                 markersRef.current.set(device.endpoint, marker);
             }
         });
-    }, [devices, latestSamples, selectedEndpoint, onSelect]);
+    }, [devices, latestSamples, units, selectedEndpoint, onSelect]);
 
     // Fly to selected device when it changes (after a short delay)
     useEffect(() => {
