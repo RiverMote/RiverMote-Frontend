@@ -33,11 +33,14 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                 ozone: s.ozone,
                 air_temp: s.air_temp,
                 humidity: s.humidity,
+                baro: s.baro,
+                alt: s.alt,
+                aqi: s.aqi,
+                voc: s.voc,
+                co2: s.co2,
+                uv: s.uv,
                 air_velocity: s.air_velocity,
                 air_velocity_peak: s.air_velocity_peak,
-                baro: s.baro,
-                uv: s.uv,
-                lum: s.lum,
                 pm1_0: s.pm1_0,
                 pm2_5: s.pm2_5,
                 pm10: s.pm10,
@@ -191,6 +194,12 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                                 tickFormatter={(value: number) => xTickLabels.get(value) ?? ""}
                             />
                             <YAxis
+                                yAxisId="left"
+                                orientation="left"
+                                tick={AXIS_TICK}
+                                tickFormatter={value => formatMetricValue("aqi", units, value as number, true)}
+                            />
+                            <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={AXIS_TICK}
@@ -198,6 +207,15 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="aqi"
+                                name={metrics.aqi.label}
+                                stroke={metrics.aqi.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
                             <Line
                                 yAxisId="right"
                                 type="monotone"
@@ -222,7 +240,7 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                 )}
             </ChartCard>
 
-            <ChartCard title="Sunlight" loading={loading}>
+            <ChartCard title="Environment" loading={loading}>
                 {hasData && (
                     <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 100, height: 50 }}>
                         <LineChart data={chartData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
@@ -234,33 +252,43 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                             />
                             <YAxis
                                 yAxisId="left"
+                                orientation="left"
                                 tick={AXIS_TICK}
-                                tickFormatter={value => formatMetricValue("uv", units, value as number, true)}
+                                tickFormatter={value => formatMetricValue("voc", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
                                 yAxisId="right"
                                 orientation="right"
                                 tick={AXIS_TICK}
-                                tickFormatter={value => formatMetricValue("lum", units, value as number, true)}
+                                tickFormatter={value => formatMetricValue("uv", units, value as number, true)}
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
-                                dataKey="uv"
-                                name={metrics.uv.label}
-                                stroke={metrics.uv.color}
+                                dataKey="voc"
+                                name={metrics.voc.label}
+                                stroke={metrics.voc.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="left"
+                                type="monotone"
+                                dataKey="co2"
+                                name={metrics.co2.label}
+                                stroke={metrics.co2.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
                             <Line
                                 yAxisId="right"
                                 type="monotone"
-                                dataKey="lum"
-                                name={metrics.lum.label}
-                                stroke={metrics.lum.color}
+                                dataKey="uv"
+                                name={metrics.uv.label}
+                                stroke={metrics.uv.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />

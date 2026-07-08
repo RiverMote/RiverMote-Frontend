@@ -9,12 +9,15 @@ export type MetricKey =
     | "tds"
     | "air_temp"
     | "humidity"
+    | "baro"
+    | "alt"
+    | "aqi"
+    | "voc"
+    | "co2"
+    | "uv"
     | "air_velocity"
     | "air_velocity_peak"
     | "ozone"
-    | "uv"
-    | "lum"
-    | "baro"
     | "pm1_0"
     | "pm2_5"
     | "pm10"
@@ -38,6 +41,20 @@ export const METRIC_OPTIONS: Array<{
     { key: "air_temp", label: "Air Temp", color: "#f87171", decimals: 1, unit: "°C", unitImperial: "°F" },
     { key: "humidity", label: "Humidity", color: "#60a5fa", decimals: 0, unit: "%" },
     {
+        key: "baro",
+        label: "Pressure",
+        color: "#be123c",
+        decimals: 1,
+        unit: " hPa",
+        decimalsImperial: 2,
+        unitImperial: " inHg",
+    },
+    { key: "alt", label: "Altitude", color: "#6d28d9", decimals: 1, unit: " m", unitImperial: " ft" },
+    { key: "aqi", label: "AQI", color: "#eab308", decimals: 0, unit: " AQI-UBA" },
+    { key: "voc", label: "VOCs", color: "#7c2d12", decimals: 2, unit: " ppm" },
+    { key: "co2", label: "CO₂", color: "#374151", decimals: 2, unit: " ppm" },
+    { key: "uv", label: "UV", color: "#f97316", decimals: 1, unit: " UVI" },
+    {
         key: "air_velocity",
         label: "Air Velocity",
         color: "#15803d",
@@ -54,17 +71,6 @@ export const METRIC_OPTIONS: Array<{
         unitImperial: " mph",
     },
     { key: "ozone", label: "Ozone", color: "#22c55e", decimals: 3, unit: " ppm" },
-    { key: "uv", label: "UV", color: "#f97316", decimals: 1, unit: " mW/cm²" },
-    { key: "lum", label: "Luminosity", color: "#eab308", decimals: 0, unit: " lx" },
-    {
-        key: "baro",
-        label: "Pressure",
-        color: "#be123c",
-        decimals: 1,
-        unit: " hPa",
-        decimalsImperial: 2,
-        unitImperial: " inHg",
-    },
     { key: "pm1_0", label: "PM1.0", color: "#7c3aed", decimals: 1, unit: " µg/m³" },
     { key: "pm2_5", label: "PM2.5", color: "#e879f9", decimals: 1, unit: " µg/m³" },
     { key: "pm10", label: "PM10", color: "#f472b6", decimals: 1, unit: " µg/m³" },

@@ -24,9 +24,10 @@ const convertToImperial = (samples: Sample[]): Sample[] =>
         ...sample,
         water_temp: sample.water_temp !== null ? (sample.water_temp * 9) / 5 + 32 : null, // °C to °F
         air_temp: sample.air_temp !== null ? (sample.air_temp * 9) / 5 + 32 : null, // °C to °F
+        baro: sample.baro !== null ? sample.baro * 0.02952998057228 : null, // hPa to inHg
+        alt: sample.alt !== null ? sample.alt * 3.28084 : null, // m to ft
         air_velocity: sample.air_velocity !== null ? sample.air_velocity * 2.2369362921 : null, // m/s to mph
         air_velocity_peak: sample.air_velocity_peak !== null ? sample.air_velocity_peak * 2.2369362921 : null, // m/s to mph
-        baro: sample.baro !== null ? sample.baro * 0.02952998057228 : null, // hPa to inHg
         chamber_temp: sample.chamber_temp !== null ? (sample.chamber_temp * 9) / 5 + 32 : null, // °C to °F
     }));
 

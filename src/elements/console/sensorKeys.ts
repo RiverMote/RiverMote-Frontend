@@ -9,4 +9,5 @@ export const SENSOR_KEYS: Array<{ key: keyof SensorHealth; label: string }> = [
     { key: "air_velocity", label: "Air Velocity" },
     { key: "particulate_matter", label: "Particulates" },
     { key: "chamber_temp", label: "Chamber Temp" },
+    { key: "uv", label: "UV" },
 ];

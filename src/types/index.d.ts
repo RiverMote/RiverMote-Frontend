@@ -20,12 +20,15 @@ export interface Sample {
     tds: number | null;
     air_temp: number | null;
     humidity: number | null;
+    baro: number | null;
+    alt: number | null;
+    aqi: number | null;
+    voc: number | null;
+    co2: number | null;
+    uv: number | null;
     air_velocity: number | null;
     air_velocity_peak: number | null;
     ozone: number | null;
-    uv: number | null;
-    lum: number | null;
-    baro: number | null;
     pm1_0: number | null;
     pm2_5: number | null;
     pm10: number | null;
@@ -55,5 +58,6 @@ export interface SensorHealth {
     air_velocity: 0 | 1;
     particulate_matter: 0 | 1;
     chamber_temp: 0 | 1;
+    uv: 0 | 1;
     updated_at: number;
 }
