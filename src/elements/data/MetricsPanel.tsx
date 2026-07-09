@@ -28,7 +28,7 @@ export default function MetricsPanel({ mode, sample, units, loading }: MetricsPa
         );
     }
 
-    const metrics = metricLookup(units);
+    const metrics = metricLookup(units, false);
     const turb = labels.turbidity(sample.turbidity);
     const tds = labels.tds(sample.tds);
     const ozone = labels.ozone(sample.ozone);

@@ -50,7 +50,7 @@ export const METRIC_OPTIONS: Array<{
         unitImperial: " inHg",
     },
     { key: "alt", label: "Altitude", color: "#6d28d9", decimals: 1, unit: " m", unitImperial: " ft" },
-    { key: "aqi", label: "AQI", color: "#eab308", decimals: 0, unit: " AQI-UBA" },
+    { key: "aqi", label: "AQI", color: "#eab308", decimals: 0, unit: " UBA AQI" },
     { key: "voc", label: "VOCs", color: "#7c2d12", decimals: 2, unit: " ppm" },
     { key: "co2", label: "CO₂", color: "#374151", decimals: 2, unit: " ppm" },
     { key: "uv", label: "UV", color: "#f97316", decimals: 1, unit: " UVI" },
@@ -78,16 +78,14 @@ export const METRIC_OPTIONS: Array<{
 ];
 // Cache for metric lookups by units to avoid recomputing on every render
 const METRIC_CACHE: Partial<
-    Record<
-        "metric" | "imperial",
-        Record<MetricKey, { key: MetricKey; label: string; color: string; decimals: number; unit: string }>
-    >
+    Record<string, Record<MetricKey, { key: MetricKey; label: string; color: string; decimals: number; unit: string }>>
 > = {};
 
 // Lookup for easy access to metric info by key
-export const metricLookup = (units: "metric" | "imperial") => {
-    if (METRIC_CACHE[units]) {
-        return METRIC_CACHE[units];
+export const metricLookup = (units: "metric" | "imperial", addUnitToLabel = true) => {
+    const key = `${units}-${addUnitToLabel}`;
+    if (METRIC_CACHE[key]) {
+        return METRIC_CACHE[key];
     }
 
     const lookup = Object.fromEntries(
@@ -101,13 +99,13 @@ export const metricLookup = (units: "metric" | "imperial") => {
                     ...option,
                     unit,
                     decimals,
-                    label: `${option.label} (${unit.trim()})`,
+                    label: addUnitToLabel ? `${option.label} (${unit.trim()})` : option.label,
                 },
             ];
         }),
     ) as Record<MetricKey, { key: MetricKey; label: string; color: string; decimals: number; unit: string }>;
 
-    METRIC_CACHE[units] = lookup;
+    METRIC_CACHE[key] = lookup;
     return lookup;
 };
 
