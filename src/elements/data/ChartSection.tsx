@@ -254,7 +254,7 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                                 yAxisId="left"
                                 orientation="left"
                                 tick={AXIS_TICK}
-                                tickFormatter={value => formatMetricValue("voc", units, value as number, true)}
+                                tickFormatter={value => formatMetricValue("co2", units, value as number, true)}
                                 tickCount={4}
                             />
                             <YAxis
@@ -265,15 +265,6 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                             />
                             <Tooltip labelFormatter={tooltipLabelFormatter} formatter={tooltipValueFormatter} />
                             <Legend />
-                            <Line
-                                yAxisId="left"
-                                type="monotone"
-                                dataKey="voc"
-                                name={metrics.voc.label}
-                                stroke={metrics.voc.color}
-                                dot={false}
-                                isAnimationActive={false}
-                            />
                             <Line
                                 yAxisId="left"
                                 type="monotone"
@@ -355,6 +346,15 @@ export default function ChartSection({ samples, units, loading = false }: ChartS
                                 dataKey="ozone"
                                 name={metrics.ozone.label}
                                 stroke={metrics.ozone.color}
+                                dot={false}
+                                isAnimationActive={false}
+                            />
+                            <Line
+                                yAxisId="right"
+                                type="monotone"
+                                dataKey="voc"
+                                name={metrics.voc.label}
+                                stroke={metrics.voc.color}
                                 dot={false}
                                 isAnimationActive={false}
                             />
